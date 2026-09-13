@@ -1,114 +1,182 @@
 "use client"
-import Link from "next/link"
 import { useState } from "react"
+import Link from "next/link"
 
-export default function DemoPage() {
-  const [active, setActive] = useState("Projects")
-  const [prompt, setPrompt] = useState("")
+type Cat = "fashion" | "interior" | "landscape"
 
-  return (
-    <div className="min-h-screen bg-[#0a0d14] text-white flex relative overflow-hidden">
-      {/* Grid + Glow */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:32px_32px] pointer-events-none" />
-      <div className="absolute top-[20%] left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-[#00f5d4]/15 blur-[80px] rounded-full pointer-events-none" />
+const data = {
+  fashion: {
+    title: "👗 Fashion Studio",
+    projects: [
+      { name: "Summer Collection '26", status: "In Progress", meta: "12 looks • Tech pack ready", color: "bg-[#2dd4bf]" },
+      { name: "Denim Line", status: "Fabric Sourced", meta: "5 patterns • Baku factory", color: "bg-white" },
+      { name: "Evening Dresses", status: "In Review", meta: "3 comments from client", color: "bg-[#f59e0b]" },
+    ],
+    assets: [
+      { name: "Fabrics Library", meta: "142 fabrics • Silk, Denim, Linen" },
+      { name: "Patterns v2.1", meta: "58 patterns • Ready to cut" },
+      { name: "Tech Packs", meta: "24 packs • PDF export" },
+    ],
+    ai: [
+      { name: "Generate 4 Variants", desc: "AI создает 4 варианта платья из 1 эскиза" },
+      { name: "Print Generator", desc: "Сгенерировать принт для ткани" },
+      { name: "Size Grading", desc: "Автоматическая градация размеров" },
+    ]
+  },
+  interior: {
+    title: "🏠 Interior Studio",
+    projects: [
+      { name: "Loft 85m² - Baku", status: "Client Approved", meta: "3D • смета: 24,500 AZN", color: "bg-[#10b981]" },
+      { name: "Villa - Novkhani", status: "In Progress", meta: "320m² • 5 rooms", color: "bg-[#2dd4bf]" },
+      { name: "Office - Port Baku", status: "In Review", meta: "120m² • Minimal", color: "bg-[#f59e0b]" },
+    ],
+    assets: [
+      { name: "Furniture Library", meta: "1,240 items • IKEA, local" },
+      { name: "Materials", meta: "86 materials • Marble, wood, textile" },
+      { name: "Lighting Plans", meta: "12 plans • LED zones" },
+    ],
+    ai: [
+      { name: "Render in 30s", desc: "Фотореалистичный рендер из плана" },
+      { name: "Style Transfer", desc: "Применить Loft / Japandi ко всей квартире" },
+      { name: "Budget Calc", desc: "Автоматическая смета по материалам" },
+    ]
+  },
+  landscape: {
+    title: "🌿 Landscape Studio",
+    projects: [
+      { name: "Villa Garden + Pool", status: "In Progress", meta: "600m² • Pool • Pergola", color: "bg-[#2dd4bf]" },
+      { name: "Terrace - Sea Breeze", status: "Planting Plan", meta: "32 plants • Auto irrigation", color: "bg-white" },
+      { name: "Courtyard - Old City", status: "Approved", meta: "Stone • Lighting • Fountain", color: "bg-[#10b981]" },
+    ],
+    assets: [
+      { name: "Plants - Baku Climate", meta: "180 plants • Полив, тень" },
+      { name: "Hardscape", meta: "Pools, pathways, pergolas" },
+      { name: "Lighting + Irrigation", meta: "LED, auto water system" },
+    ],
+    ai: [
+      { name: "Generate Garden Plan", desc: "AI план сада по фото участка" },
+      { name: "Season Preview", desc: "Как будет выглядеть сад летом/зимой" },
+      { name: "Water Calculation", desc: "Расчет полива и освещения" },
+    ]
+  }
+}
 
-      {/* Sidebar */}
-      <aside className="relative z-10 w-[240px] hidden md:flex flex-col bg-[#0e1018] border-r border-white/[0.06] p-4">
-        <Link href="/" className="flex items-center gap-2 font-bold text-[16px] mb-8">
-          <div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black">◈</div>
-          DzynOS.com
-        </Link>
+export default function Demo(){
+  const [cat, setCat] = useState<Cat>("interior")
+  const c = data[cat]
 
-        <div className="space-y-1">
-          {[
-            { name: "Projects", icon: "📁", count: "8" },
-            { name: "Assets", icon: "▦", count: "347" },
-            { name: "AI Studio", icon: "✨", count: "AI", active: true },
-            { name: "Team", icon: "👥", count: "4" },
-          ].map((item) => (
-            <button key={item.name} onClick={() => setActive(item.name)} className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-[13px] font-medium transition ${active===item.name? "bg-[#2dd4bf]/15 text-[#2dd4bf] border border-[#2dd4bf]/30" : "text-white/50 hover:bg-white/5 hover:text-white"}`}>
-              <span className="flex items-center gap-2.5"><span>{item.icon}</span>{item.name}</span>
-              <span className={`text-[10px] px-1.5 py-0.5 rounded ${active===item.name? "bg-[#2dd4bf] text-black" : "bg-white/10"}`}>{item.count}</span>
-            </button>
+  return(
+    <div className="min-h-screen bg-[#080a12] text-white">
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:28px_28px]" />
+      <div className="relative z-10 max-w-[1200px] mx-auto px-4 pt-4">
+        {/* Header */}
+        <div className="flex items-center justify-between bg-[#11141d] border border-white/10 rounded-xl px-4 py-2.5">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-center gap-2 font-bold"><div className="w-7 h-7 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black">◈</div>DzynOS</Link>
+            <div className="hidden md:flex bg-black/40 border border-white/10 rounded-lg p-1">
+              {(["fashion","interior","landscape"] as Cat[]).map(k=>(
+                <button key={k} onClick={()=>setCat(k)} className={`px-3 py-1 rounded-md text-[12px] font-bold capitalize transition ${cat===k?"bg-white text-black":"text-white/50 hover:text-white"}`}>{k==="fashion"?"👗 Fashion":k==="interior"?"🏠 Interior":"🌿 Landscape"}</button>
+              ))}
+            </div>
+          </div>
+          <Link href="/"><button className="text-[12px] bg-white text-black px-3 py-1.5 rounded-lg font-bold">← Landing</button></Link>
+        </div>
+
+        {/* Mobile switcher */}
+        <div className="md:hidden flex bg-black/40 border border-white/10 rounded-xl p-1 mt-4">
+          {(["fashion","interior","landscape"] as Cat[]).map(k=>(
+            <button key={k} onClick={()=>setCat(k)} className={`flex-1 py-2 rounded-lg text-[12px] font-bold ${cat===k?"bg-white text-black":"text-white/50"}`}>{k}</button>
           ))}
         </div>
 
-        <div className="mt-auto bg-[#171a27] border border-white/10 rounded-xl p-3">
-          <p className="text-[11px] text-white/40">AI Credits</p>
-          <div className="mt-2 h-1.5 bg-white/10 rounded-full"><div className="h-full w-[68%] bg-[#2dd4bf] rounded-full"></div></div>
-          <p className="text-[11px] text-white/60 mt-2">68% • 1,240 / 2,000 left</p>
-        </div>
-      </aside>
-
-      {/* Main */}
-      <main className="relative z-10 flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="h-[64px] flex items-center justify-between px-4 md:px-6 border-b border-white/[0.06] bg-[#0e1018]/80 backdrop-blur">
-          <div className="flex items-center gap-3">
-            <Link href="/" className="md:hidden font-bold">DzynOS</Link>
-            <h2 className="font-bold text-[15px]">{active}</h2>
-            <span className="hidden md:flex text-[11px] bg-[#2dd4bf]/20 text-[#2dd4bf] px-2 py-0.5 rounded-full">Demo Mode</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <input placeholder="Search..." className="hidden md:block bg-white/5 border border-white/10 rounded-lg px-3 py-1.5 text-[12px] w-[200px] placeholder:text-white/30 focus:outline-none focus:border-[#2dd4bf]/40" />
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2dd4bf] to-[#0ea5e9]"></div>
-          </div>
-        </div>
-
-        {/* Content */}
-        <div className="flex-1 p-4 md:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6 overflow-auto">
-          {/* Left - Projects List */}
-          <div className="lg:col-span-2 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="font-bold text-[14px]">Recent Projects</h3>
-              <button className="text-[11px] bg-[#2dd4bf] text-black px-3 py-1.5 rounded-lg font-bold">+ New</button>
-            </div>
-
-            {[
-              { name: "Mobile App Redesign", status: "In Progress", color: "bg-[#2dd4bf] text-black", progress: 70, updated: "2h ago", team: "👥 3" },
-              { name: "Brand Guidelines", status: "Completed", color: "bg-green-500/20 text-green-400", progress: 100, updated: "yesterday", team: "✅ Done" },
-              { name: "Website v3", status: "In Review", color: "bg-yellow-500/20 text-yellow-400", progress: 85, updated: "1d ago", team: "💬 2 comments" },
-            ].map((p) => (
-              <div key={p.name} className="bg-[#0e1018] border border-white/[0.06] hover:border-[#2dd4bf]/30 rounded-xl p-4 transition group cursor-pointer">
-                <div className="flex justify-between items-start">
-                  <div><p className="font-bold text-[13px]">{p.name}</p><p className="text-[11px] text-white/40 mt-1">Updated {p.updated} • {p.team}</p></div>
-                  <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold ${p.color}`}>● {p.status}</span>
+        {/* Main */}
+        <div className="mt-6 grid grid-cols-1 lg:grid-cols-[260px_1fr_260px] gap-4">
+          {/* Left - Projects */}
+          <div className="bg-[#0e1018] border border-white/10 rounded-2xl p-4">
+            <h3 className="text-[#2dd4bf] font-bold text-[13px] mb-4">📁 Projects • {c.title}</h3>
+            <div className="space-y-3">
+              {c.projects.map((p,i)=>(
+                <div key={i} className="bg-white/[0.03] border border-white/5 rounded-xl p-3 hover:border-white/10 cursor-pointer">
+                  <div className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded-full ${p.color} ${p.color==="bg-white"?"text-black":"text-black"}`}>{p.status}</div>
+                  <p className="font-bold text-[12px] mt-2">{p.name}</p>
+                  <p className="text-[11px] text-white/40 mt-1">{p.meta}</p>
                 </div>
-                <div className="mt-3 h-1 bg-white/10 rounded-full"><div className="h-1 rounded-full bg-[#2dd4bf]" style={{ width: `${p.progress}%` }}></div></div>
-                <div className="mt-3 hidden group-hover:flex gap-2"><button className="text-[11px] bg-white/10 px-2.5 py-1 rounded-lg">Open</button><button className="text-[11px] bg-white/5 px-2.5 py-1 rounded-lg">Share</button><button className="text-[11px] bg-[#2dd4bf]/20 text-[#2dd4bf] px-2.5 py-1 rounded-lg ml-auto">Generate Variant</button></div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <button className="w-full mt-4 py-2 rounded-xl bg-white/[0.05] border border-white/10 text-[12px] hover:bg-white/[0.08]">+ New Project</button>
           </div>
 
-          {/* Right - AI Studio */}
+          {/* Center - Canvas */}
+          <div className="bg-[#0e1018] border border-[#2dd4bf]/30 rounded-2xl p-4 min-h-[500px] shadow-[0_0_40px_rgba(45,212,191,0.15)]">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-[13px]">{cat==="fashion"?"Canvas • Collection Board":cat==="interior"?"Canvas • Floor Plan - 85m²":"Canvas • Garden Plan - 600m²"}</h3>
+              <div className="flex gap-1">
+                <span className="w-2 h-2 rounded-full bg-[#2dd4bf]"></span>
+                <span className="w-2 h-2 rounded-full bg-white/20"></span>
+                <span className="w-2 h-2 rounded-full bg-white/20"></span>
+              </div>
+            </div>
+
+            {/* Fake canvas content based on category */}
+            {cat==="fashion" && (
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white rounded-xl h-[180px] flex items-center justify-center text-black text-[11px]">👗 Dress Sketch 1</div>
+                <div className="bg-white rounded-xl h-[180px] flex items-center justify-center text-black text-[11px]">👗 Dress Sketch 2</div>
+                <div className="bg-[#12302e] border border-[#2dd4bf]/30 rounded-xl h-[120px] flex items-center justify-center text-[#2dd4bf] text-[11px]">+ AI Variations x4</div>
+                <div className="bg-white/[0.05] border border-dashed border-white/20 rounded-xl h-[120px] flex items-center justify-center text-white/30 text-[11px]">Drop fabric here</div>
+              </div>
+            )}
+            {cat==="interior" && (
+              <div className="bg-[#11131c] border border-white/10 rounded-xl p-3">
+                <div className="grid grid-cols-3 gap-2 text-[10px]">
+                  <div className="bg-[#2dd4bf]/20 border border-[#2dd4bf]/40 rounded p-2 h-[90px]">Living<br/>24m²</div>
+                  <div className="bg-white/5 border border-white/10 rounded p-2 h-[90px]">Kitchen<br/>12m²</div>
+                  <div className="bg-white/5 border border-white/10 rounded p-2 h-[90px]">Bedroom<br/>18m²</div>
+                  <div className="bg-white/5 border border-white/10 rounded p-2 h-[60px] col-span-2">Terrace • 16m²</div>
+                  <div className="bg-[#f59e0b]/20 border border-[#f59e0b]/30 rounded p-2 h-[60px]">Bath</div>
+                </div>
+                <p className="text-[10px] text-white/30 mt-3 text-center">Drag furniture • Click to render • AI budget: 24,500 AZN</p>
+              </div>
+            )}
+            {cat==="landscape" && (
+              <div className="bg-[#11131c] border border-white/10 rounded-xl p-3">
+                <div className="relative h-[260px] bg-[#0a1a14] rounded-lg border border-[#2dd4bf]/20 p-2">
+                  <div className="absolute top-2 left-2 right-2 bottom-2 border border-dashed border-white/20 rounded flex items-center justify-center">
+                    <div className="text-center text-[10px] text-white/40">
+                      🌿 Garden • 🏊 Pool 6x3m<br/>🪴 Pergola • 💡 Lighting zones<br/>💧 Auto irrigation
+                    </div>
+                  </div>
+                </div>
+                <p className="text-[10px] text-white/30 mt-3 text-center">600m² • 32 plants • Baku climate • Water: 120L/day</p>
+              </div>
+            )}
+          </div>
+
+          {/* Right - Assets + AI */}
           <div className="space-y-4">
-            <div className="bg-[#0e1018] border border-[#2dd4bf]/40 rounded-xl p-4 shadow-[0_0_20px_rgba(45,212,191,0.15)]">
-              <h3 className="font-bold text-[14px] text-[#2dd4bf] flex items-center gap-2">✨ AI Studio</h3>
-              <div className="mt-4 space-y-3">
-                <textarea value={prompt} onChange={e=>setPrompt(e.target.value)} placeholder="Describe what you want to generate... e.g. 'minimal dashboard with 3 cards'" className="w-full h-[80px] bg-[#171a27] border border-white/10 rounded-xl p-3 text-[12px] placeholder:text-white/30 focus:outline-none focus:border-[#2dd4bf]/50 resize-none" />
-                <button onClick={()=>alert('Demo: Generating 4 variants for: ' + prompt)} className="w-full bg-[#2dd4bf] text-black font-bold text-[12px] py-2.5 rounded-xl hover:bg-[#5eead4] transition">Generate Variations →</button>
-              </div>
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div className="h-[70px] rounded-lg bg-white/5 border border-white/10"></div>
-                <div className="h-[70px] rounded-lg bg-white/5 border border-white/10"></div>
-                <div className="h-[70px] rounded-lg bg-white/5 border border-white/10"></div>
-                <div className="h-[70px] rounded-lg bg-[#2dd4bf]/10 border border-[#2dd4bf]/20 flex items-center justify-center text-[#2dd4bf] text-[10px]">+ New</div>
+            <div className="bg-[#0e1018] border border-white/10 rounded-2xl p-4">
+              <h3 className="text-[#2dd4bf] font-bold text-[13px] mb-4">▦ Assets</h3>
+              <div className="space-y-3">
+                {c.assets.map((a,i)=><div key={i}><p className="font-bold text-[12px]">{a.name}</p><p className="text-[11px] text-white/40">{a.meta}</p></div>)}
               </div>
             </div>
-
-            <div className="bg-[#0e1018] border border-white/[0.06] rounded-xl p-4">
-              <h4 className="font-bold text-[13px] mb-3">Assets</h4>
-              <div className="space-y-2.5">
-                <div className="flex justify-between items-center text-[12px]"><span>Icons Pack 2.1</span><span className="text-[10px] bg-[#2dd4bf] text-black px-1.5 py-0.5 rounded font-bold">v2.1</span></div>
-                <p className="text-[11px] text-white/40">284 components • Updated today</p>
-                <div className="flex gap-1.5 mt-2"><div className="w-6 h-6 rounded bg-[#2dd4bf]"></div><div className="w-6 h-6 rounded bg-white/10"></div><div className="w-6 h-6 rounded bg-white/10"></div></div>
+            <div className="bg-[#0e1018] border border-[#2dd4bf]/30 rounded-2xl p-4 shadow-[0_0_20px_rgba(45,212,191,0.15)]">
+              <h3 className="text-[#2dd4bf] font-bold text-[13px] mb-4">✨ AI Studio</h3>
+              <div className="space-y-3">
+                {c.ai.map((a,i)=>(
+                  <div key={i} className={`${i===0?"bg-[#12302e] border border-[#2dd4bf]/40 rounded-xl p-3":"px-1"}`}>
+                    <p className="font-bold text-[12px]">{a.name}</p>
+                    <p className="text-[11px] text-white/50 mt-0.5">{a.desc}</p>
+                  </div>
+                ))}
               </div>
+              <button className="w-full mt-4 py-2 rounded-xl bg-[#2dd4bf] text-black font-bold text-[12px]">Generate with AI →</button>
             </div>
-
-            <Link href="/" className="block text-center text-[11px] text-white/30 hover:text-white/60 mt-4">← Back to Landing</Link>
           </div>
         </div>
-      </main>
+
+        <div className="h-8" />
+      </div>
     </div>
   )
-      }
+}
