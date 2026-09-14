@@ -1,7 +1,7 @@
 "use client"
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
-import { supabase } from "@/lib/supabase"
+import { supabase } from "../../lib/supabase"
 
 function DashboardInner() {
   const search = useSearchParams()
