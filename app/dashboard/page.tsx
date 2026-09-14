@@ -40,11 +40,17 @@ function DashboardInner() {
       <div className="w-[260px] bg-[#0e1018] border-r border-white/10 p-5 hidden md:flex flex-col">
         <div className="flex items-center gap-2 mb-8"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold">DzynOS</span></div>
         <div className="space-y-1 text-[13px]">
-          <a href="/dashboard?cat=fashion" className={`block px-3 py-2 rounded-xl ${cat=='fashion'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>👗 Moda</a>
-          <a href="/dashboard?cat=interior" className={`block px-3 py-2 rounded-xl ${cat=='interior'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🏠 Interyer</a>
-          <a href="/dashboard?cat=landscape" className={`block px-3 py-2 rounded-xl ${cat=='landscape'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🌿 Landşaft</a>
-          <a href="/dashboard?cat=brand" className={`block px-3 py-2 rounded-xl ${cat=='brand'?'bg-white/10 text-white':'text-white/60'}`}>🎨 Brand</a>
-        </div>
+  <a href="/dashboard?cat=fashion" className={`block px-3 py-2 rounded-xl ${cat=='fashion'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>👗 Moda / Fashion</a>
+  <a href="/dashboard?cat=interior" className={`block px-3 py-2 rounded-xl ${cat=='interior'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🛋️ Interyer</a>
+  <a href="/dashboard?cat=landscape" className={`block px-3 py-2 rounded-xl ${cat=='landscape'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🌿 Landşaft</a>
+  <a href="/dashboard?cat=architecture" className={`block px-3 py-2 rounded-xl ${cat=='architecture'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🏗️ Memarlıq</a>
+  <a href="/dashboard?cat=jewelry" className={`block px-3 py-2 rounded-xl ${cat=='jewelry'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>💍 Zərgərlik</a>
+  <a href="/dashboard?cat=product" className={`block px-3 py-2 rounded-xl ${cat=='product'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>📦 Məhsul</a>
+  <a href="/dashboard?cat=graphic" className={`block px-3 py-2 rounded-xl ${cat=='graphic'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🎨 Qrafika</a>
+  <a href="/dashboard?cat=web" className={`block px-3 py-2 rounded-xl ${cat=='web'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>💻 Web & App</a>
+  <a href="/dashboard?cat=3d" className={`block px-3 py-2 rounded-xl ${cat=='3d'?'bg-[#2dd4bf]/10 text-[#2dd4bf]':'text-white/60'}`}>🎬 3D & Vizual</a>
+  <a href="/dashboard?cat=custom" className={`block px-3 py-2 rounded-xl ${cat=='custom'?'bg-white/10 text-white':'text-white/60'}`}>➕ Custom</a>
+</div>
         <button onClick={addProject} className="mt-auto w-full py-2.5 rounded-xl bg-white text-black font-bold text-[13px]">+ New Project</button>
         <a href="/" className="mt-3 text-center text-[11px] text-white/30">← На лендинг</a>
       </div>
