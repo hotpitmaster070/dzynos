@@ -78,7 +78,8 @@ export default function Page(){
                 {(["en","ru","az"] as const).map(l=><button key={l} onClick={()=>setL(l)} className={`w-full text-left px-3 py-2 rounded-lg text-[12px] ${lang===l?"bg-white text-black font-bold":"text-white/60 hover:bg-white/5"}`}>{l==="en"?"English":l==="ru"?"Русский":"Azərbaycan"} {lang===l&&"✓"}</button>)}
               </div>}
             </div>
-            <Link href="/demo"><button className="px-4 py-1.5 rounded-lg bg-[#2dd4bf] text-black text-[13px] font-bold shadow-[0_0_15px_rgba(45,212,191,0.3)]">Get Started</button></Link>
+            {/* ИСПРАВИЛ ТУТ: теперь ведет в панель */}
+            <Link href="/dashboard"><button className="px-4 py-1.5 rounded-lg bg-[#2dd4bf] text-black text-[13px] font-bold shadow-[0_0_15px_rgba(45,212,191,0.3)]">Get Started</button></Link>
           </div>
         </header>
 
@@ -87,36 +88,35 @@ export default function Page(){
           <h1 className="text-[30px] md:text-[48px] font-bold tracking-tight leading-[1.1]">{c.hero}</h1>
           <p className="text-white/50 text-[13px] md:text-[15px] mt-4 max-w-[680px] mx-auto leading-relaxed">{c.sub}</p>
           <div className="flex justify-center gap-3 mt-6">
-            <Link href="/demo"><button className="px-6 py-3 rounded-xl bg-[#2dd4bf] text-black font-bold text-[13px] shadow-[0_0_25px_rgba(45,212,191,0.5)]">{c.start}</button></Link>
-            <Link href="/demo"><button className="px-6 py-3 rounded-xl bg-white/[0.06] border border-white/15 text-[13px]">{c.demo}</button></Link>
+            <Link href="/dashboard"><button className="px-6 py-3 rounded-xl bg-[#2dd4bf] text-black font-bold text-[13px] shadow-[0_0_25px_rgba(45,212,191,0.5)]">{c.start}</button></Link>
+            <Link href="/dashboard?cat=brand"><button className="px-6 py-3 rounded-xl bg-white/[0.06] border border-white/15 text-[13px]">{c.demo}</button></Link>
           </div>
         </div>
 
-        {/* УНИВЕРСАЛЬНАЯ КАРТА - ДЛЯ ВСЕХ ДИЗАЙНЕРОВ */}
         <div className="mt-10 mx-auto max-w-[960px] bg-[#0e1018] border border-[#00f5d4]/40 rounded-[24px] p-6 md:p-8 shadow-[0_0_0_1px_rgba(0,245,212,0.25),0_0_70px_rgba(0,245,212,0.3)]">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div>
               <h3 className="flex items-center gap-2 text-[#2dd4bf] font-bold text-[16px] mb-5">👗 {c.f}</h3>
               <div className="space-y-4">
-                <div><div className="inline-flex bg-[#2dd4bf] text-black text-[10px] font-bold px-2 py-0.5 rounded-full">In Progress</div><p className="font-bold text-[13px] mt-1.5">{c.f1}</p><p className="text-[11px] text-white/40">{c.f1s}</p></div>
-                <div><p className="font-bold text-[13px]">{c.f2}</p><p className="text-[11px] text-white/40">{c.f2s}</p></div>
-                <div><p className="font-bold text-[13px]">{c.f3}</p><p className="text-[11px] text-white/40">{c.f3s}</p></div>
+                <Link href="/dashboard?cat=fashion" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><div className="inline-flex bg-[#2dd4bf] text-black text-[10px] font-bold px-2 py-0.5 rounded-full">In Progress</div><p className="font-bold text-[13px] mt-1.5">{c.f1}</p><p className="text-[11px] text-white/40">{c.f1s}</p></Link>
+                <Link href="/dashboard?cat=fashion" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><p className="font-bold text-[13px]">{c.f2}</p><p className="text-[11px] text-white/40">{c.f2s}</p></Link>
+                <Link href="/dashboard?cat=fashion" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><p className="font-bold text-[13px]">{c.f3}</p><p className="text-[11px] text-white/40">{c.f3s}</p></Link>
               </div>
             </div>
             <div>
               <h3 className="flex items-center gap-2 text-[#2dd4bf] font-bold text-[16px] mb-5">🏠 {c.i}</h3>
               <div className="space-y-4">
-                <div><div className="inline-flex bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded">85m²</div><p className="font-bold text-[13px] mt-1.5">{c.i1}</p><p className="text-[11px] text-white/40">{c.i1s}</p></div>
-                <div><p className="font-bold text-[13px]">{c.i2}</p><p className="text-[11px] text-white/40">{c.i2s}</p></div>
-                <div><p className="font-bold text-[13px]">{c.i3}</p><p className="text-[11px] text-white/40">{c.i3s}</p></div>
+                <Link href="/dashboard?cat=interior" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><div className="inline-flex bg-white text-black text-[10px] font-bold px-2 py-0.5 rounded">85m²</div><p className="font-bold text-[13px] mt-1.5">{c.i1}</p><p className="text-[11px] text-white/40">{c.i1s}</p></Link>
+                <Link href="/dashboard?cat=interior" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><p className="font-bold text-[13px]">{c.i2}</p><p className="text-[11px] text-white/40">{c.i2s}</p></Link>
+                <Link href="/dashboard?cat=interior" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><p className="font-bold text-[13px]">{c.i3}</p><p className="text-[11px] text-white/40">{c.i3s}</p></Link>
               </div>
             </div>
             <div>
               <h3 className="flex items-center gap-2 text-[#2dd4bf] font-bold text-[16px] mb-5">🌿 {c.l}</h3>
               <div className="space-y-4">
-                <div className="bg-[#12302e] border border-[#2dd4bf]/40 rounded-xl p-3"><p className="font-bold text-[13px]">{c.l1}</p><p className="text-[11px] text-white/50 mt-1">{c.l1s}</p></div>
-                <div><p className="font-bold text-[13px]">{c.l2}</p><p className="text-[11px] text-white/40">{c.l2s}</p></div>
-                <div><p className="font-bold text-[13px]">{c.l3}</p><p className="text-[11px] text-white/40">{c.l3s}</p></div>
+                <Link href="/dashboard?cat=landscape" className="block bg-[#12302e] border border-[#2dd4bf]/40 rounded-xl p-3 hover:bg-[#12302e]/80 transition"><p className="font-bold text-[13px]">{c.l1}</p><p className="text-[11px] text-white/50 mt-1">{c.l1s}</p></Link>
+                <Link href="/dashboard?cat=landscape" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><p className="font-bold text-[13px]">{c.l2}</p><p className="text-[11px] text-white/40">{c.l2s}</p></Link>
+                <Link href="/dashboard?cat=landscape" className="block hover:bg-white/[0.03] rounded-xl p-2 -m-2 transition"><p className="font-bold text-[13px]">{c.l3}</p><p className="text-[11px] text-white/40">{c.l3s}</p></Link>
               </div>
             </div>
           </div>
@@ -130,4 +130,4 @@ export default function Page(){
       </footer>
     </div>
   )
-    }
+                                                                                                                                                                                                                 }
