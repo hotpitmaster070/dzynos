@@ -1,5 +1,4 @@
 "use client"
-export const dynamic = 'force-dynamic'
 import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
@@ -10,7 +9,7 @@ function DashboardInner() {
   const [projects, setProjects] = useState<any[]>([])
 
   useEffect(() => {
-    supabase.from('projects').select('*').eq('cat', cat).then(({ data }) => {
+    supabase.from('projects').select('*').eq('cat', cat).order('created_at', {ascending:false}).then(({ data }) => {
       if (data) setProjects(data)
     })
   }, [cat])
@@ -66,4 +65,4 @@ function DashboardInner() {
 
 export default function Dashboard() {
   return <Suspense fallback={<div className="min-h-screen bg-[#080a12] text-white p-10">Loading...</div>}><DashboardInner /></Suspense>
-}
+          }
