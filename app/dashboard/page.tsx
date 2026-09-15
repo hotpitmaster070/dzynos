@@ -35,6 +35,13 @@ function DashboardInner() {
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
 
+  // TOP PRODUCT MODALS
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newTitle, setNewTitle] = useState("")
+  const [showFieldModal, setShowFieldModal] = useState(false)
+  const [newFieldKey, setNewFieldKey] = useState("")
+  const [newFieldValue, setNewFieldValue] = useState("")
+
   const load = async () => {
     setLoading(true)
     const { data } = await supabase.from('projects').select('*').eq('cat', cat).order('created_at', {ascending:false})
@@ -43,11 +50,11 @@ function DashboardInner() {
   }
   useEffect(()=>{ load(); setSelected(null); setMenuOpen(false) },[cat])
 
-  const addProject = async () => {
-    const title = prompt("Adı / Название:")
-    if(!title) return
-    const { data } = await supabase.from('projects').insert({ cat, title, status: 'To Review', props: {} }).select().single()
-    if(data) { setProjects([data,...projects]); setSelected(data) }
+  const createProject = async () => {
+    if(!newTitle.trim()) return
+    const { data, error } = await supabase.from('projects').insert({ cat, title: newTitle.trim(), status: 'To Review', props: {} }).select().single()
+    if(error){ alert(error.message); return }
+    if(data) { setProjects([data,...projects]); setSelected(data); setShowAddModal(false); setNewTitle("") }
   }
 
   const updateProps = async (newFields:any) => {
@@ -58,13 +65,10 @@ function DashboardInner() {
     setProjects(prev=> prev.map(p=> p.id===selected.id? {...p, props:newProps} : p))
   }
 
-  const addField = async () => {
-    if(!selected) return
-    const key = prompt("Название поля:")
-    if(!key) return
-    const value = prompt(`Значение для "${key}":`)
-    if(value===null) return
-    updateProps({ [key]: value })
+  const createField = async () => {
+    if(!newFieldKey.trim() ||!selected) return
+    updateProps({ [newFieldKey.trim()]: newFieldValue })
+    setShowFieldModal(false); setNewFieldKey(""); setNewFieldValue("")
   }
 
   const renderTool = () => {
@@ -103,7 +107,7 @@ function DashboardInner() {
                 <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-4 py-3.5 rounded-xl border transition-all ${cat==c.id?'bg-[#2dd4bf] text-black font-bold border-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)]':'text-white/70 bg-[#141414] border-white/[0.06] hover:bg-[#1e1e1e] hover:border-white/10'}`}>{c.label}</a>
               ))}
             </div>
-            <button onClick={addProject} className="mt-5 w-full py-3 rounded-xl bg-white text-black font-bold text-[14px]">+ New Project</button>
+            <button onClick={()=>setShowAddModal(true)} className="mt-5 w-full py-3 rounded-xl bg-white text-black font-bold text-[14px]">+ New Project</button>
             <a href="/" className="mt-3 block text-center text-[12px] text-white/40">← На лендинг</a>
           </div>
         </div>
@@ -116,14 +120,14 @@ function DashboardInner() {
             <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-3 py-3 rounded-xl border transition-all ${cat==c.id?'bg-[#2dd4bf] text-black font-bold border-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)]':'text-white/50 bg-[#141414] border-white/[0.06] hover:text-white hover:bg-[#1e1e1e]'}`}>{c.label}</a>
           ))}
         </div>
-        <button onClick={addProject} className="mt-auto w-full py-3 rounded-xl bg-white text-black font-bold text-[13px] hover:bg-[#2dd4bf] transition">+ New Project</button>
+        <button onClick={()=>setShowAddModal(true)} className="mt-auto w-full py-3 rounded-xl bg-white text-black font-bold text-[13px] hover:bg-[#2dd4bf] transition">+ New Project</button>
         <a href="/" className="mt-3 text-center text-[11px] text-white/30 hover:text-white">← На лендинг</a>
       </div>
 
       <div className="flex-1 p-4 md:p-6 overflow-auto bg-black">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-[18px] font-bold tracking-tight">{cat.toUpperCase()} — <span className="text-white/40 font-normal">{projects.length}</span></h1>
-          <button onClick={addProject} className="md:hidden px-4 py-2 bg-[#2dd4bf] text-black rounded-full text-[12px] font-bold">+ New</button>
+          <button onClick={()=>setShowAddModal(true)} className="md:hidden px-4 py-2 bg-[#2dd4bf] text-black rounded-full text-[12px] font-bold">+ New</button>
         </div>
         {loading? <div className="text-white/30 text-[13px]">Загрузка...</div> :
         <div className="grid md:grid-cols-2 gap-3">
@@ -150,7 +154,7 @@ function DashboardInner() {
                 </div>
               ))}
             </div>
-            <button onClick={addField} className="mt-4 w-full py-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] hover:bg-white/10">+ Добавить поле</button>
+            <button onClick={()=>setShowFieldModal(true)} className="mt-4 w-full py-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] hover:bg-white/10">+ Добавить поле</button>
           </div>
         )}
       </div>
@@ -160,10 +164,60 @@ function DashboardInner() {
           {renderTool()}
         </div>
       )}
+
+      {/* TOP PRODUCT MODAL - CREATE PROJECT */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="w-full max-w-[380px] bg-[#111111] border border-white/[0.08] rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+            <h3 className="text-[18px] font-bold">New Project</h3>
+            <p className="text-[12px] text-white/40 mt-1">Category: {cat.toUpperCase()}</p>
+            <input
+              autoFocus
+              value={newTitle}
+              onChange={e=>setNewTitle(e.target.value)}
+              onKeyDown={e=>e.key==='Enter' && createProject()}
+              placeholder="Например: Villa in Baku..."
+              className="mt-5 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#2dd4bf]/50 focus:bg-[#141414] transition-all"
+            />
+            <div className="flex gap-2 mt-4">
+              <button onClick={()=>{setShowAddModal(false); setNewTitle("")}} className="flex-1 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] font-medium">Cancel</button>
+              <button onClick={createProject} className="flex-1 py-3 rounded-xl bg-[#2dd4bf] text-black text-[13px] font-bold">Create</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TOP PRODUCT MODAL - ADD FIELD */}
+      {showFieldModal && (
+        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
+          <div className="w-full max-w-[380px] bg-[#111111] border border-white/[0.08] rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+            <h3 className="text-[18px] font-bold">Add Field</h3>
+            <p className="text-[12px] text-white/40 mt-1">Project: {selected?.title}</p>
+            <input
+              autoFocus
+              value={newFieldKey}
+              onChange={e=>setNewFieldKey(e.target.value)}
+              placeholder="Название поля (например: budget)"
+              className="mt-5 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#2dd4bf]/50 focus:bg-[#141414] transition-all"
+            />
+            <input
+              value={newFieldValue}
+              onChange={e=>setNewFieldValue(e.target.value)}
+              onKeyDown={e=>e.key==='Enter' && createField()}
+              placeholder="Значение"
+              className="mt-3 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#2dd4bf]/50 focus:bg-[#141414] transition-all"
+            />
+            <div className="flex gap-2 mt-4">
+              <button onClick={()=>{setShowFieldModal(false); setNewFieldKey(""); setNewFieldValue("")}} className="flex-1 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] font-medium">Cancel</button>
+              <button onClick={createField} className="flex-1 py-3 rounded-xl bg-white text-black text-[13px] font-bold">Add</button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
 
 export default function Dashboard(){
   return <Suspense fallback={<div className="min-h-screen bg-black text-white p-10">Loading...</div>}><DashboardInner/></Suspense>
-    }
+                                    }
