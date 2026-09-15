@@ -15,38 +15,40 @@ export default function Page(){
   const [open,setOpen]=useState(false)
   const c=dict[lang]
   return(
-    <div className="min-h-screen bg-[#0a0d14] text-white relative flex flex-col overflow-hidden">
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff06_1px,transparent_1px),linear-gradient(to_bottom,#ffffff06_1px,transparent_1px)] bg-[size:32px_32px]" />
-      <div className="absolute top-[300px] left-1/2 -translate-x-1/2 w-[900px] h-[500px] bg-[#00f5d4]/20 blur-[100px] rounded-full pointer-events-none" />
+    <div className="min-h-screen bg-black text-white relative flex flex-col overflow-hidden">
+      {/* Сетка теперь почти невидимая - как у Apple */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:40px_40px]" />
+      {/* Бирюзовое свечение - мягкое */}
+      <div className="absolute top-[250px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[#00f5d4]/[0.12] blur-[120px] rounded-full pointer-events-none" />
       <div className="relative z-10 max-w-[1100px] mx-auto w-full px-4 pt-6 flex-1">
-        <header className="flex items-center justify-between bg-[#11141d]/90 backdrop-blur-xl border border-white/[0.06] rounded-2xl px-4 py-3">
-          <Link href="/" className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00f5d4] to-[#00a8a0] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold text-[16px]">DzynOS</span></Link>
+        <header className="flex items-center justify-between bg-[#111111]/80 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-3">
+          <Link href="/" className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00f5d4] to-[#00a8a0] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold text-[16px] tracking-tight">DzynOS</span></Link>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <button onClick={()=>setOpen(!open)} className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px]">🌐 {lang.toUpperCase()} ▼</button>
-              {open && <div className="absolute right-0 top-9 bg-[#171a27] border border-white/10 rounded-xl p-1 w-[140px] z-50">
+              <button onClick={()=>setOpen(!open)} className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-full px-3 py-1.5 text-[11px]">🌐 {lang.toUpperCase()} ▼</button>
+              {open && <div className="absolute right-0 top-9 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 w-[140px] z-50 shadow-2xl">
                 {(["en","ru","az"] as const).map(l=><button key={l} onClick={()=>{setLang(l); setOpen(false)}} className={`w-full text-left px-3 py-2 rounded-lg text-[12px] ${lang===l?"bg-white text-black font-bold":"text-white/60 hover:bg-white/5"}`}>{l.toUpperCase()} {lang===l&&"✓"}</button>)}
               </div>}
             </div>
-            <Link href="/dashboard?cat=fashion"><button className="px-4 py-1.5 rounded-lg bg-[#2dd4bf] text-black text-[13px] font-bold">Get Started</button></Link>
+            <Link href="/dashboard?cat=fashion"><button className="px-5 py-2 rounded-full bg-[#2dd4bf] text-black text-[13px] font-bold hover:bg-[#00f5d4] transition">Get Started</button></Link>
           </div>
         </header>
 
-        <div className="text-center mt-10 max-w-4xl mx-auto">
-          <div className="inline-flex items-center gap-2 bg-[#00f5d4]/10 border border-[#00f5d4]/30 rounded-full px-3 py-1 text-[11px] text-[#2dd4bf] mb-5">{c.badge}</div>
-          <h1 className="text-[32px] md:text-[52px] font-bold tracking-tight leading-[1.05]">{c.hero}</h1>
-          <p className="text-white/50 text-[13px] md:text-[15px] mt-4 max-w-[700px] mx-auto">{c.sub}</p>
-          <div className="flex flex-wrap justify-center gap-2 mt-6 max-w-[700px] mx-auto">
-            {c.cats.map((catName,i)=><Link key={i} href={`/dashboard?cat=${CATS[i]}`} className="px-3 py-1.5 rounded-full bg-white/[0.05] border border-white/10 text-[11px] text-white/70 hover:bg-[#2dd4bf]/10 hover:border-[#2dd4bf]/30 hover:text-[#2dd4bf] transition">{catName}</Link>)}
+        <div className="text-center mt-16 md:mt-20 max-w-4xl mx-auto">
+          <div className="inline-flex items-center gap-2 bg-[#00f5d4]/[0.08] border border-[#00f5d4]/20 rounded-full px-3.5 py-1.5 text-[11px] text-[#2dd4bf] mb-6 tracking-wide">{c.badge}</div>
+          <h1 className="text-[34px] md:text-[56px] font-bold tracking-[-0.03em] leading-[0.95]">{c.hero}</h1>
+          <p className="text-white/50 text-[14px] md:text-[16px] mt-5 max-w-[680px] mx-auto leading-relaxed">{c.sub}</p>
+          <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-[720px] mx-auto">
+            {c.cats.map((catName,i)=><Link key={i} href={`/dashboard?cat=${CATS[i]}`} className="px-3.5 py-2 rounded-full bg-white/[0.06] border border-white/10 text-[12px] text-white/70 hover:bg-[#2dd4bf]/10 hover:border-[#2dd4bf]/30 hover:text-[#2dd4bf] transition">{catName}</Link>)}
           </div>
-          <div className="flex justify-center gap-3 mt-6">
-            <Link href="/dashboard?cat=fashion"><button className="px-6 py-3 rounded-xl bg-[#2dd4bf] text-black font-bold text-[13px] shadow-[0_0_25px_rgba(45,212,191,0.5)]">{c.start}</button></Link>
-            <Link href="/dashboard?cat=custom"><button className="px-6 py-3 rounded-xl bg-white/[0.06] border border-white/15 text-[13px]">{c.demo}</button></Link>
+          <div className="flex justify-center gap-3 mt-8">
+            <Link href="/dashboard?cat=fashion"><button className="px-7 py-3.5 rounded-full bg-[#2dd4bf] text-black font-bold text-[14px] shadow-[0_0_30px_rgba(45,212,191,0.4)] hover:shadow-[0_0_40px_rgba(45,212,191,0.6)] hover:bg-[#00f5d4] transition">{c.start}</button></Link>
+            <Link href="/dashboard?cat=custom"><button className="px-7 py-3.5 rounded-full bg-white/[0.06] border border-white/15 text-[14px] hover:bg-white/[0.1] transition">{c.demo}</button></Link>
           </div>
         </div>
-        <div className="h-10" />
+        <div className="h-16" />
       </div>
-      <footer className="relative z-10 border-t border-white/[0.06] py-5 text-center"><p className="text-[11px] text-white/30">© 2026 DzynOS • Made in Baku • 10 Categories</p></footer>
+      <footer className="relative z-10 border-t border-white/[0.06] py-6 text-center"><p className="text-[11px] text-white/30 tracking-wide">© 2026 DzynOS • Made in Baku • 10 Categories • True Black Edition</p></footer>
     </div>
   )
-                }
+            }
