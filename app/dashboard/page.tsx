@@ -3,7 +3,6 @@ import { useSearchParams } from "next/navigation"
 import { Suspense, useEffect, useState } from "react"
 import { supabase } from "../../lib/supabase"
 
-// 10 КАТЕГОРИЙ - КАЖДАЯ ОТДЕЛЬНО
 import FashionTool from "./tools/fashion"
 import InteriorTool from "./tools/interior"
 import LandscapeTool from "./tools/landscape"
@@ -34,6 +33,7 @@ function DashboardInner() {
   const [projects, setProjects] = useState<any[]>([])
   const [selected, setSelected] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [menuOpen, setMenuOpen] = useState(false)
 
   const load = async () => {
     setLoading(true)
@@ -41,7 +41,7 @@ function DashboardInner() {
     if(data) setProjects(data)
     setLoading(false)
   }
-  useEffect(()=>{ load(); setSelected(null) },[cat])
+  useEffect(()=>{ load(); setSelected(null); setMenuOpen(false) },[cat])
 
   const addProject = async () => {
     const title = prompt("Adı / Название:")
@@ -50,7 +50,6 @@ function DashboardInner() {
     if(data) { setProjects([data,...projects]); setSelected(data) }
   }
 
-  // ОБНОВЛЕНИЕ ПОЛЕЙ - ДЛЯ ВСЕХ ИНСТРУМЕНТОВ
   const updateProps = async (newFields:any) => {
     if(!selected) return
     const newProps = {...(selected.props||{}),...newFields}
@@ -69,7 +68,7 @@ function DashboardInner() {
   }
 
   const renderTool = () => {
-    if(!selected) return <div className="text-white/20 text-center mt-20 text-[13px]">Выбери проект слева<br/>или создай новый</div>
+    if(!selected) return <div className="text-white/20 text-center mt-20 text-[13px]">Выбери проект<br/>или создай новый</div>
     const props = { project: selected, onUpdate: updateProps }
     switch(cat){
       case 'fashion': return <FashionTool {...props} />
@@ -87,30 +86,55 @@ function DashboardInner() {
   }
 
   return (
-    <div className="min-h-screen bg-[#080a12] text-white flex">
-      {/* ЛЕВАЯ ПАНЕЛЬ */}
-      <div className="w-[240px] bg-[#0e1018] border-r border-white/10 p-5 hidden md:flex flex-col">
-        <div className="flex items-center gap-2 mb-8"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold">DzynOS</span></div>
+    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row relative">
+
+      {/* МОБИЛЬНЫЙ HEADER С БУРГЕРОМ - ТОП ПРОДУКТ */}
+      <div className="md:hidden flex items-center justify-between p-4 bg-[#0a0a0a] border-b border-white/[0.06] sticky top-0 z-30 backdrop-blur-2xl">
+        <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold text-[15px]">DzynOS</span></div>
+        <button onClick={()=>setMenuOpen(!menuOpen)} className="w-9 h-9 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center">
+          <div className="space-y-1">{menuOpen? <span className="text-[16px]">✕</span> : <><div className="w-4 h-0.5 bg-white"></div><div className="w-4 h-0.5 bg-white"></div><div className="w-4 h-0.5 bg-white"></div></>}
+          </div>
+        </button>
+      </div>
+
+      {/* МОБИЛЬНОЕ МЕНЮ - ВЫЕЗЖАЕТ */}
+      {menuOpen && (
+        <div className="md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-xl pt-[64px]">
+          <div className="bg-[#111111] border-b border-white/10 p-5 rounded-b-[24px]">
+            <div className="space-y-1 text-[14px]">
+              {CATS.map(c=>(
+                <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-4 py-3 rounded-xl transition ${cat==c.id?'bg-[#2dd4bf] text-black font-bold':'text-white/60 bg-white/[0.04]'}`}>{c.label}</a>
+              ))}
+            </div>
+            <button onClick={addProject} className="mt-5 w-full py-3 rounded-xl bg-white text-black font-bold text-[14px]">+ New Project</button>
+            <a href="/" className="mt-3 block text-center text-[12px] text-white/40">← На лендинг</a>
+          </div>
+        </div>
+      )}
+
+      {/* ЛЕВАЯ ПАНЕЛЬ ДЕСКТОП */}
+      <div className="w-[260px] bg-[#0a0a0a] border-r border-white/[0.06] p-5 hidden md:flex flex-col">
+        <div className="flex items-center gap-2 mb-8"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold tracking-tight">DzynOS</span><span className="text-[10px] bg-[#2dd4bf]/20 text-[#2dd4bf] px-1.5 py-0.5 rounded-full ml-1">TRUE BLACK</span></div>
         <div className="space-y-1 text-[13px]">
           {CATS.map(c=>(
-            <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-3 py-2 rounded-xl transition ${cat==c.id?'bg-[#2dd4bf]/15 text-[#2dd4bf] border border-[#2dd4bf]/20':'text-white/50 hover:text-white hover:bg-white/5'}`}>{c.label}</a>
+            <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-3 py-2.5 rounded-xl transition ${cat==c.id?'bg-[#2dd4bf] text-black font-bold':'text-white/50 hover:text-white hover:bg-white/[0.06]'}`}>{c.label}</a>
           ))}
         </div>
-        <button onClick={addProject} className="mt-auto w-full py-2.5 rounded-xl bg-white text-black font-bold text-[13px] hover:bg-[#2dd4bf] transition">+ New Project</button>
+        <button onClick={addProject} className="mt-auto w-full py-3 rounded-xl bg-white text-black font-bold text-[13px] hover:bg-[#2dd4bf] transition">+ New Project</button>
         <a href="/" className="mt-3 text-center text-[11px] text-white/30 hover:text-white">← На лендинг</a>
       </div>
 
-      {/* ЦЕНТР - СПИСОК ПРОЕКТОВ */}
-      <div className="flex-1 p-6 overflow-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h1 className="text-[18px] font-bold">{cat.toUpperCase()} — {projects.length}</h1>
-          <button onClick={addProject} className="md:hidden px-3 py-1.5 bg-white text-black rounded-lg text-[12px] font-bold">+ New</button>
+      {/* ЦЕНТР */}
+      <div className="flex-1 p-4 md:p-6 overflow-auto bg-black">
+        <div className="flex items-center justify-between mb-5">
+          <h1 className="text-[18px] font-bold tracking-tight">{cat.toUpperCase()} — <span className="text-white/40 font-normal">{projects.length}</span></h1>
+          <button onClick={addProject} className="md:hidden px-4 py-2 bg-[#2dd4bf] text-black rounded-full text-[12px] font-bold">+ New</button>
         </div>
         {loading? <div className="text-white/30 text-[13px]">Загрузка...</div> :
         <div className="grid md:grid-cols-2 gap-3">
           {projects.map(p=>(
-            <div key={p.id} onClick={()=>setSelected(p)} className={`p-4 rounded-2xl border cursor-pointer transition ${selected?.id===p.id?'bg-[#2dd4bf]/10 border-[#2dd4bf]/50 shadow-[0_0_20px_rgba(45,212,191,0.1)]':'bg-[#151821] border-white/10 hover:border-white/20'}`}>
-              <div className="text-[10px] bg-[#2dd4bf]/20 text-[#2dd4bf] inline-flex px-2 py-0.5 rounded-full font-bold">{p.status}</div>
+            <div key={p.id} onClick={()=>setSelected(p)} className={`p-4 rounded-[16px] border cursor-pointer transition ${selected?.id===p.id?'bg-[#2dd4bf]/[0.08] border-[#2dd4bf]/40 shadow-[0_0_20px_rgba(45,212,191,0.15)]':'bg-[#111111] border-white/[0.06] hover:border-white/10'}`}>
+              <div className="text-[10px] bg-[#2dd4bf]/15 text-[#2dd4bf] inline-flex px-2 py-0.5 rounded-full font-bold tracking-wide">{p.status}</div>
               <div className="font-bold text-[14px] mt-2">{p.title}</div>
               <div className="text-[11px] text-white/30 mt-1">{Object.keys(p.props||{}).length} полей</div>
             </div>
@@ -118,18 +142,17 @@ function DashboardInner() {
         </div>}
       </div>
 
-      {/* ПРАВАЯ ПАНЕЛЬ - ИНСТРУМЕНТ КАТЕГОРИИ */}
-      <div className="w-[360px] bg-[#0e1018] border-l border-white/10 p-5 hidden lg:block overflow-auto">
+      {/* ПРАВАЯ ПАНЕЛЬ */}
+      <div className="w-[360px] bg-[#0a0a0a] border-l border-white/[0.06] p-5 hidden lg:block overflow-auto">
         {renderTool()}
-
         {selected && (
-          <div className="mt-6 pt-6 border-t border-white/10">
-            <h4 className="text-[11px] text-white/40 uppercase tracking-widest mb-3">Все поля проекта</h4>
+          <div className="mt-6 pt-6 border-t border-white/[0.06]">
+            <h4 className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-3">Все поля проекта</h4>
             <div className="space-y-2">
               {Object.entries(selected.props||{}).map(([k,v]:any)=>(
-                <div key={k} className="bg-white/[0.03] border border-white/10 rounded-xl px-3 py-2">
-                  <div className="text-[10px] text-white/40 uppercase">{k}</div>
-                  <div className="text-[13px]">{String(v)}</div>
+                <div key={k} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2.5">
+                  <div className="text-[10px] text-white/40 uppercase tracking-wide">{k}</div>
+                  <div className="text-[13px] mt-0.5">{String(v)}</div>
                 </div>
               ))}
             </div>
@@ -137,10 +160,17 @@ function DashboardInner() {
           </div>
         )}
       </div>
+
+      {/* МОБИЛЬНАЯ ПАНЕЛЬ ИНСТРУМЕНТА - ВНИЗУ */}
+      {selected && (
+        <div className="lg:hidden bg-[#0a0a0a] border-t border-white/[0.06] p-4">
+          {renderTool()}
+        </div>
+      )}
     </div>
   )
 }
 
 export default function Dashboard(){
-  return <Suspense fallback={<div className="min-h-screen bg-[#080a12] text-white p-10">Loading...</div>}><DashboardInner/></Suspense>
+  return <Suspense fallback={<div className="min-h-screen bg-black text-white p-10">Loading...</div>}><DashboardInner/></Suspense>
         }
