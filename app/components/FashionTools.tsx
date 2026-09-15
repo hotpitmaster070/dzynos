@@ -1,61 +1,57 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
-export default function FashionTools(){
-  const [model,setModel]=useState("Summer Dress '26")
-  const [fabric,setFabric]=useState("Linen 100% • Artikul L-204 • Baku Textile")
-  const [color,setColor]=useState("#F5F1E8 • Beige / Pantone 13-0905")
-  const [sizes,setSizes]=useState([{s:"S", chest:44, waist:36, length:92},{s:"M", chest:46, waist:38, length:94},{s:"L", chest:48, waist:40, length:96}])
+export default function FashionTool({ project, onUpdate }: any) {
+  const p = project?.props || {}
+  const [meters, setMeters] = useState(Number(p["Расход м"]||2.3))
+  const [priceM, setPriceM] = useState(Number(p["Цена за м"]||18))
+  const [work, setWork] = useState(Number(p["Пошив AZN"]||25))
+  const [furn, setFurn] = useState(Number(p["Фурнитура AZN"]||5))
+
+  const totalFabric = meters * priceM
+  const total = totalFabric + work + furn
+
+  // автосохранение в Supabase если передали onUpdate
+  useEffect(()=>{
+    if(onUpdate){
+      onUpdate({ "Расход м": String(meters), "Цена за м": String(priceM), "Пошив AZN": String(work), "Фурнитура AZN": String(furn), "Себестоимость AZN": String(total) })
+    }
+  },[meters, priceM, work, furn])
 
   return (
-    <div className="grid md:grid-cols-2 gap-6">
-      {/* Левая часть - ИНСТРУМЕНТЫ */}
-      <div className="bg-[#11141d] border border-white/10 rounded-2xl p-5 space-y-4">
-        <h3 className="font-bold text-[#2dd4bf]">👗 Конструктор Техпака</h3>
-
-        <div><label className="text-[11px] text-white/40">Модель</label><input value={model} onChange={e=>setModel(e.target.value)} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
-        <div><label className="text-[11px] text-white/40">Ткань и поставщик</label><input value={fabric} onChange={e=>setFabric(e.target.value)} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
-        <div><label className="text-[11px] text-white/40">Цвет / Pantone</label><input value={color} onChange={e=>setColor(e.target.value)} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
-
-        <div>
-          <label className="text-[11px] text-white/40">Размерная сетка (см)</label>
-          <div className="mt-2 grid grid-cols-4 gap-2 text-[11px]">
-            <div className="text-white/30">Size</div><div className="text-white/30">Грудь</div><div className="text-white/30">Талия</div><div className="text-white/30">Длина</div>
-            {sizes.map((r,i)=>(
-              <>
-                <div className="bg-white/5 rounded px-2 py-1">{r.s}</div>
-                <input value={r.chest} onChange={e=>{const n=[...sizes]; n[i].chest=Number(e.target.value); setSizes(n)}} className="bg-white/5 border border-white/10 rounded px-2 py-1" />
-                <input value={r.waist} onChange={e=>{const n=[...sizes]; n[i].waist=Number(e.target.value); setSizes(n)}} className="bg-white/5 border border-white/10 rounded px-2 py-1" />
-                <input value={r.length} onChange={e=>{const n=[...sizes]; n[i].length=Number(e.target.value); setSizes(n)}} className="bg-white/5 border border-white/10 rounded px-2 py-1" />
-              </>
-            ))}
-          </div>
+    <div className="space-y-4">
+      {/* ТЕХПАК */}
+      <div className="bg-[#11141d] border border-white/10 rounded-2xl p-5">
+        <h3 className="font-bold text-[#2dd4bf] mb-3">👗 Техпак — {project?.title}</h3>
+        <div className="grid grid-cols-2 gap-2 text-[12px] text-white/70">
+          <div>Ткань: <b className="text-white">{p["Ткань"]||"—"}</b></div>
+          <div>Цвет: <b className="text-white">{p["Цвет / Pantone"]||p["Цвет"]||"—"}</b></div>
+          <div>Фабрика: <b className="text-white">{p["Фабрика"]||"—"}</b></div>
+          <div>Размер: <b className="text-white">{p["S-Grud"]||"44"} / {p["S-Taliya"]||"36"}</b></div>
         </div>
-
-        <button className="w-full mt-3 bg-[#2dd4bf] text-black font-bold py-2.5 rounded-xl text-[13px]">📄 Сгенерировать Техпак PDF →</button>
-        <p className="text-[10px] text-white/30 text-center">Экономия 3 часа на модель • Готово для фабрики</p>
       </div>
 
-      {/* Правая часть - Превью PDF */}
-      <div className="bg-white text-black rounded-2xl p-6 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
-        <div className="flex justify-between border-b pb-3 mb-4">
-          <h4 className="font-black text-[16px] tracking-tight">TECH PACK</h4>
-          <span className="text-[10px] bg-black text-white px-2 py-1 rounded-full">{model}</span>
+      {/* КАЛЬКУЛЯТОР ТКАНИ */}
+      <div className="bg-[#151821] border border-[#2dd4bf]/20 rounded-2xl p-5">
+        <h3 className="font-bold text-white mb-4">📦 Калькулятор ткани и себестоимости</h3>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className="text-[10px] text-white/40">Расход ткани, м</label><input type="number" step="0.1" value={meters} onChange={e=>setMeters(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
+          <div><label className="text-[10px] text-white/40">Цена за метр, AZN</label><input type="number" value={priceM} onChange={e=>setPriceM(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
+          <div><label className="text-[10px] text-white/40">Пошив, AZN</label><input type="number" value={work} onChange={e=>setWork(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
+          <div><label className="text-[10px] text-white/40">Фурнитура, AZN</label><input type="number" value={furn} onChange={e=>setFurn(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-[13px]" /></div>
         </div>
-        <div className="grid grid-cols-2 gap-4 text-[11px]">
-          <div className="border border-dashed border-black/20 h-[180px] flex items-center justify-center text-black/30">Front / Back Sketch</div>
-          <div className="space-y-3">
-            <div><b>FABRIC:</b><br/>{fabric}</div>
-            <div><b>COLOR:</b><br/>{color}</div>
-            <div><b>TRIM:</b><br/>YKK Zipper #5 Beige, Label woven</div>
-          </div>
+
+        <div className="mt-5 bg-black/40 rounded-xl p-4 space-y-2 text-[13px]">
+          <div className="flex justify-between"><span className="text-white/50">Ткань {meters}м × {priceM} AZN</span><b>{totalFabric.toFixed(2)} AZN</b></div>
+          <div className="flex justify-between"><span className="text-white/50">Пошив + фурнитура</span><b>{(work+furn).toFixed(2)} AZN</b></div>
+          <div className="flex justify-between border-t border-white/10 pt-2 text-[15px]"><span className="font-bold">Себестоимость</span><b className="text-[#2dd4bf] text-[18px]">{total.toFixed(2)} AZN</b></div>
+          <div className="flex justify-between text-[11px] text-white/40"><span>Рекоменд. продажа x2.5</span><span>{(total*2.5).toFixed(2)} AZN</span></div>
         </div>
-        <table className="w-full mt-5 text-[10px] border-collapse">
-          <thead><tr className="bg-black text-white"><th className="p-1.5 text-left">Size</th><th className="p-1.5">Chest</th><th className="p-1.5">Waist</th><th className="p-1.5">Length</th></tr></thead>
-          <tbody>{sizes.map(r=><tr key={r.s} className="border-b"><td className="p-1.5 font-bold">{r.s}</td><td className="p-1.5 text-center">{r.chest}</td><td className="p-1.5 text-center">{r.waist}</td><td className="p-1.5 text-center">{r.length}</td></tr>)}</tbody>
-        </table>
-        <p className="mt-4 text-[9px] text-black/50">Generated by DzynOS • Made in Baku • dzynos.com • Ready for factory</p>
+
+        <button onClick={()=>window.print()} className="mt-4 w-full bg-[#2dd4bf] text-black font-bold py-2.5 rounded-xl text-[13px]">📄 Скачать PDF с расчетом</button>
+        <p className="text-[10px] text-white/20 text-center mt-2">Считает как в Excel, но за 10 сек</p>
       </div>
     </div>
   )
-      }
+                        }
