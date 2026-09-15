@@ -87,8 +87,6 @@ function DashboardInner() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col md:flex-row relative">
-
-      {/* МОБИЛЬНЫЙ HEADER С БУРГЕРОМ - ТОП ПРОДУКТ */}
       <div className="md:hidden flex items-center justify-between p-4 bg-[#0a0a0a] border-b border-white/[0.06] sticky top-0 z-30 backdrop-blur-2xl">
         <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold text-[15px]">DzynOS</span></div>
         <button onClick={()=>setMenuOpen(!menuOpen)} className="w-9 h-9 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center">
@@ -97,13 +95,12 @@ function DashboardInner() {
         </button>
       </div>
 
-      {/* МОБИЛЬНОЕ МЕНЮ - ВЫЕЗЖАЕТ */}
       {menuOpen && (
         <div className="md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-xl pt-[64px]">
           <div className="bg-[#111111] border-b border-white/10 p-5 rounded-b-[24px]">
-            <div className="space-y-1 text-[14px]">
+            <div className="space-y-2 text-[14px]">
               {CATS.map(c=>(
-                <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-4 py-3 rounded-xl transition ${cat==c.id?'bg-[#2dd4bf] text-black font-bold':'text-white/60 bg-white/[0.04]'}`}>{c.label}</a>
+                <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-4 py-3.5 rounded-xl border transition-all ${cat==c.id?'bg-[#2dd4bf] text-black font-bold border-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)]':'text-white/70 bg-[#141414] border-white/[0.06] hover:bg-[#1e1e1e] hover:border-white/10'}`}>{c.label}</a>
               ))}
             </div>
             <button onClick={addProject} className="mt-5 w-full py-3 rounded-xl bg-white text-black font-bold text-[14px]">+ New Project</button>
@@ -112,19 +109,17 @@ function DashboardInner() {
         </div>
       )}
 
-      {/* ЛЕВАЯ ПАНЕЛЬ ДЕСКТОП */}
       <div className="w-[260px] bg-[#0a0a0a] border-r border-white/[0.06] p-5 hidden md:flex flex-col">
         <div className="flex items-center gap-2 mb-8"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold tracking-tight">DzynOS</span><span className="text-[10px] bg-[#2dd4bf]/20 text-[#2dd4bf] px-1.5 py-0.5 rounded-full ml-1">TRUE BLACK</span></div>
-        <div className="space-y-1 text-[13px]">
+        <div className="space-y-2 text-[13px]">
           {CATS.map(c=>(
-            <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-3 py-2.5 rounded-xl transition ${cat==c.id?'bg-[#2dd4bf] text-black font-bold':'text-white/50 hover:text-white hover:bg-white/[0.06]'}`}>{c.label}</a>
+            <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-3 py-3 rounded-xl border transition-all ${cat==c.id?'bg-[#2dd4bf] text-black font-bold border-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)]':'text-white/50 bg-[#141414] border-white/[0.06] hover:text-white hover:bg-[#1e1e1e]'}`}>{c.label}</a>
           ))}
         </div>
         <button onClick={addProject} className="mt-auto w-full py-3 rounded-xl bg-white text-black font-bold text-[13px] hover:bg-[#2dd4bf] transition">+ New Project</button>
         <a href="/" className="mt-3 text-center text-[11px] text-white/30 hover:text-white">← На лендинг</a>
       </div>
 
-      {/* ЦЕНТР */}
       <div className="flex-1 p-4 md:p-6 overflow-auto bg-black">
         <div className="flex items-center justify-between mb-5">
           <h1 className="text-[18px] font-bold tracking-tight">{cat.toUpperCase()} — <span className="text-white/40 font-normal">{projects.length}</span></h1>
@@ -142,7 +137,6 @@ function DashboardInner() {
         </div>}
       </div>
 
-      {/* ПРАВАЯ ПАНЕЛЬ */}
       <div className="w-[360px] bg-[#0a0a0a] border-l border-white/[0.06] p-5 hidden lg:block overflow-auto">
         {renderTool()}
         {selected && (
@@ -161,7 +155,6 @@ function DashboardInner() {
         )}
       </div>
 
-      {/* МОБИЛЬНАЯ ПАНЕЛЬ ИНСТРУМЕНТА - ВНИЗУ */}
       {selected && (
         <div className="lg:hidden bg-[#0a0a0a] border-t border-white/[0.06] p-4">
           {renderTool()}
@@ -173,4 +166,4 @@ function DashboardInner() {
 
 export default function Dashboard(){
   return <Suspense fallback={<div className="min-h-screen bg-black text-white p-10">Loading...</div>}><DashboardInner/></Suspense>
-        }
+    }
