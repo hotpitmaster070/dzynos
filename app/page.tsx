@@ -17,9 +17,7 @@ export default function Page(){
   return(
     <div className="min-h-screen bg-black text-white relative flex flex-col overflow-hidden">
       {/* Сетка теперь почти невидимая - как у Apple */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff08_1px,transparent_1px),linear-gradient(to_bottom,#ffffff08_1px,transparent_1px)] bg-[size:40px_40px]" />
-      {/* Бирюзовое свечение - мягкое */}
-      <div className="absolute top-[250px] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-[#00f5d4]/[0.12] blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.3]" />
       <div className="relative z-10 max-w-[1100px] mx-auto w-full px-4 pt-6 flex-1">
         <header className="flex items-center justify-between bg-[#111111]/80 backdrop-blur-2xl border border-white/[0.08] rounded-2xl px-4 py-3">
           <Link href="/" className="flex items-center gap-2.5"><div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00f5d4] to-[#00a8a0] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold text-[16px] tracking-tight">DzynOS</span></Link>
