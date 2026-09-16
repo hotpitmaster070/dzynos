@@ -1,9 +1,9 @@
 "use client"
 import Link from "next/link"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { createClient } from "@supabase/supabase-js"
 
-// Прямое подключение к твоей базе данных Supabase без терминала
+// Подключение к твоей базе данных Supabase
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ""
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ""
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
@@ -16,9 +16,9 @@ const dict = {
   az: { badge:"🚀 Bu gün start • 10 Kateqoriya", hero:"BÜTÜN Dizayn üçün Əməliyyat Sistemi", sub:"Moda, interyer, landşaft, memarlıq, zərgərlik, məhsul, qrafika, veb və 3D — hamısı bir yerdə. Bakıda hazırlanmışdır.", start:"Pulsuz başla →", demo:"Panelə bax", cats:["👗 Moda","🛋️ İnteryer","🌿 Landşaft","🏗️ Memarlıq","💍 Zərgərlik","📦 Məhsul","🎨 Qrafika","💻 Web & App","🎬 3D Vizual","➕ Custom"], f:"Moda", i:"İnteryer", l:"Landşaft", authTitleIn:"Xoş gəldiniz", authTitleUp:"Hesab yarat", email:"E-poçt ünvanı", pass:"Şifrə", signIn:"Daxil ol", signUp:"Qeydiyyat", googleIn:"Google ilə davam et", needAcc:"Hesabınız yoxdur? Qeydiyyat", haveAcc:"Artıq hesabınız var? Daxil ol" }
 }
 
-export default function Page(){
-  const [lang,setLang]=useState<"en"|"ru"|"az">("en")
-  const [open,setOpen]=useState(false)
+export default function Page() {
+  const [lang, setLang] = useState<"en" | "ru" | "az">("en")
+  const [open, setOpen] = useState(false)
   
   // Состояния для ИИ-Окна авторизации
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -31,13 +31,11 @@ export default function Page(){
 
   const c = dict[lang]
 
-  // Функция открытия окна авторизации с запоминанием выбранной категории
   const triggerAuth = (category: string) => {
     setSelectedCat(category)
     setShowAuthModal(true)
   }
 
-  // Логика работы с Supabase (Вход и Регистрация)
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
@@ -45,15 +43,12 @@ export default function Page(){
 
     try {
       if (isSignUp) {
-        // Регистрация нового дизайнера в твоей БД
         const { error } = await supabase.auth.signUp({ email, password })
         if (error) throw error
         alert(lang === "ru" ? "Проверьте почту для подтверждения!" : "Check your email for confirmation!")
       } else {
-        // Вход существующего дизайнера
         const { error } = await supabase.auth.signInWithPassword({ email, password })
         if (error) throw error
-        // Успешный вход -> Редирект в соответствующий кабинет
         window.location.href = `/dashboard?cat=${selectedCat}`
       }
     } catch (error: any) {
@@ -63,7 +58,6 @@ export default function Page(){
     }
   }
 
-  // Вход через Google (Топ уровень)
   const handleGoogleLogin = async () => {
     try {
       const { error } = await supabase.auth.signInWithOAuth({
@@ -76,7 +70,7 @@ export default function Page(){
     }
   }
 
-  return(
+  return (
     <div className="min-h-screen bg-black text-white relative flex flex-col overflow-hidden">
       {/* Сетка Apple-style */}
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)] bg-[size:40px_40px] opacity-[0.3]" />
@@ -89,10 +83,14 @@ export default function Page(){
           </Link>
           <div className="flex items-center gap-2">
             <div className="relative">
-              <button onClick={()=>setOpen(!open)} className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-full px-3 py-1.5 text-[11px]">🌐 {lang.toUpperCase()} ▼</button>
-              {open && <div className="absolute right-0 top-9 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 w-[140px] z-50 shadow-2xl">
-                {(["en","ru","az"] as const).map(l=><button key={l} onClick={()=>{setLang(l); setOpen(false)}} className={`w-full text-left px-3 py-2 rounded-lg text-[12px] ${lang===l?"bg-white text-black font-bold":"text-white/60 hover:bg-white/5"}`}>{l.toUpperCase()} {lang===l&&"✓"}</button>)}
-              </div>}
+              <button onClick={() => setOpen(!open)} className="flex items-center gap-1.5 bg-white/[0.06] border border-white/10 rounded-full px-3 py-1.5 text-[11px]">🌐 {lang.toUpperCase()} ▼</button>
+              {open && (
+                <div className="absolute right-0 top-9 bg-[#1a1a1a] border border-white/10 rounded-xl p-1 w-[140px] z-50 shadow-2xl">
+                  {(["en", "ru", "az"] as const).map(l => (
+                    <button key={l} onClick={() => { setLang(l); setOpen(false) }} className={`w-full text-left px-3 py-2 rounded-lg text-[12px] ${lang === l ? "bg-white text-black font-bold" : "text-white/60 hover:bg-white/5"}`}>{l.toUpperCase()} {lang === l && "✓"}</button>
+                  ))}
+                </div>
+              )}
             </div>
             <button onClick={() => triggerAuth("fashion")} className="px-5 py-2 rounded-full bg-[#2dd4bf] text-black text-[13px] font-bold hover:bg-[#00f5d4] transition">Get Started</button>
           </div>
@@ -103,9 +101,8 @@ export default function Page(){
           <h1 className="text-[34px] md:text-[56px] font-bold tracking-[-0.03em] leading-[0.95]">{c.hero}</h1>
           <p className="text-white/50 text-[14px] md:text-[16px] mt-5 max-w-[680px] mx-auto leading-relaxed">{c.sub}</p>
           
-          {/* Кнопки Категорий - теперь ведут на авторизацию конкретного кабинета */}
           <div className="flex flex-wrap justify-center gap-2 mt-8 max-w-[720px] mx-auto">
-            {c.cats.map((catName,i)=>(
+            {c.cats.map((catName, i) => (
               <button key={i} onClick={() => triggerAuth(CATS[i])} className="px-3.5 py-2 rounded-full bg-white/[0.06] border border-white/10 text-[12px] text-white/70 hover:bg-[#2dd4bf]/10 hover:border-[#2dd4bf]/30 hover:text-[#2dd4bf] transition">
                 {catName}
               </button>
@@ -122,7 +119,7 @@ export default function Page(){
 
       {/* ПРЕМИАЛЬНОЕ ИИ-ОКНО АВТОРИЗАЦИИ (MODAL) */}
       {showAuthModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-md">
           <div className="bg-[#0c0c0c] border border-white/[0.08] rounded-3xl w-full max-w-[400px] p-6 relative shadow-[0_0_50px_rgba(0,0,0,0.8)]">
             <button onClick={() => setShowAuthModal(false)} className="absolute top-4 right-4 text-white/40 hover:text-white text-[18px]">✕</button>
             
@@ -142,4 +139,7 @@ export default function Page(){
               </div>
               <div>
                 <label className="block text-[11px] text-white/40 mb-1.5 uppercase tracking-wider">{c.pass}</label>
-                                                                                                                                                                                                                                                                                     
+                <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/[0.04] border border-white/10 rounded-xl px-3.5 py-2.5 text-[14px] focus:outline-none focus:border-[#2dd4bf] text-white transition" placeholder="••••••••" />
+              </div>
+
+                                                 
