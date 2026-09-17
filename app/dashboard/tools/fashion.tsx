@@ -22,7 +22,7 @@ const TOOLS_LIST = [
   { id: "cut", icon: "✂️", label: "Pattern" }
 ]
 
-export default function FashionTool({ project, onUpdate }: any) {
+export default function FashionTool({ project, onUpdate }) {
   const p = project?.props || {}
 
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
@@ -37,7 +37,7 @@ export default function FashionTool({ project, onUpdate }: any) {
     dbPalette = FALLBACK_COLORS 
   }
 
-  const colors = dbPalette.map((c: any) => {
+  const colors = dbPalette.map((c) => {
     if (typeof c === 'string') return { name: c, hex: c }
     return c
   })
@@ -98,7 +98,7 @@ export default function FashionTool({ project, onUpdate }: any) {
     alert("Saved to cloud! ✅")
   }
 
-  const currentHex = colors.find((c: any) => c.name === color)?.hex || "#e8dcc6"
+  const currentHex = colors.find((c) => c.name === color)?.hex || "#e8dcc6"
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-white bg-black p-2 md:p-4 rounded-3xl">
@@ -189,7 +189,7 @@ export default function FashionTool({ project, onUpdate }: any) {
           <div className="border-t border-white/5 pt-3">
             <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2">🎨 Fabric Palette ({colors.length})</h4>
             <div className="flex gap-2 flex-wrap">
-              {colors.map((c: any) => (
+              {colors.map((c) => (
                 <button type="button" key={c.name} onClick={() => setColor(c.name)} className={`w-8 h-8 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
               ))}
             </div>
@@ -203,4 +203,3 @@ export default function FashionTool({ project, onUpdate }: any) {
             <select 
               value={currency} 
               onChange={e => setCurrency(e.target.value)} 
-    
