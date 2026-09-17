@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 
 const REAL_PANTONE_DATABASE = [
   { name: "Classic Blue (Pantone 19-4052)", hex: "#0f4c81" },
@@ -34,7 +34,7 @@ const TOOLS_LIST = [
   { id: "cut", icon: "✂️", label: "Pattern" }
 ]
 
-export default function FashionTool(props: any) {
+export default function FashionTool(props) {
   const project = props.project
   const onUpdate = props.onUpdate
   const p = project?.props || {}
@@ -99,7 +99,7 @@ export default function FashionTool(props: any) {
       const mockPattern = "https://unsplash.com"
       setImg(mockPattern)
       setAiGenerating(false)
-      if (onUpdate) onUpdate({ image_url: mockPattern } as any)
+      if (onUpdate) onUpdate({ image_url: mockPattern })
     }, 1500)
   }
 
@@ -159,8 +159,7 @@ export default function FashionTool(props: any) {
                 onClick={function() { setColor(c.name) }} 
                 className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`} 
                 style={{ backgroundColor: c.hex }} 
-                title={c.name} 
-              />
+                title={c.name} />
             )
           })}
           {filteredColors.length === 0 && (
