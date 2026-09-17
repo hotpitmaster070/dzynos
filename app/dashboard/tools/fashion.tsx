@@ -60,18 +60,27 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  // Безопасный поиск символа валюты
-  const matchedCurrency = CURRENCIES.find(function(c) { return c.code === currency })
-  const currentSymbol = matchedCurrency ? matchedCurrency.symbol : "$"
+  let currentSymbol = "$"
+  for (let i = 0; i < CURRENCIES.length; i++) {
+    if (CURRENCIES[i].code === currency) {
+      currentSymbol = CURRENCIES[i].symbol
+    }
+  }
 
-  // Безопасный поиск HEX цвета
-  const matchedColor = REAL_PANTONE_DATABASE.find(function(c) { return c.name === color })
-  const currentHex = matchedColor ? matchedColor.hex : "#0f4c81"
+  let currentHex = "#0f4c81"
+  for (let j = 0; j < REAL_PANTONE_DATABASE.length; j++) {
+    if (REAL_PANTONE_DATABASE[j].name === color) {
+      currentHex = REAL_PANTONE_DATABASE[j].hex
+    }
+  }
 
-  // Безопасная фильтрация палитры по поиску
-  const filteredColors = REAL_PANTONE_DATABASE.filter(function(c) {
-    return c.name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
-  })
+  const filteredColors: any[] = []
+  for (let k = 0; k < REAL_PANTONE_DATABASE.length; k++) {
+    const match = REAL_PANTONE_DATABASE[k].name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+    if (match) {
+      filteredColors.push(REAL_PANTONE_DATABASE[k])
+    }
+  }
 
   useEffect(() => {
     if (project?.image_url) {
@@ -98,7 +107,7 @@ export default function FashionTool(props: any) {
   const generateAiPattern = () => {
     if (!prompt) return
     setAiGenerating(true)
-    setTimeout(() => {
+    setTimeout(function() {
       const mockPattern = "https://unsplash.com"
       setImg(mockPattern)
       setAiGenerating(false)
@@ -162,8 +171,7 @@ export default function FashionTool(props: any) {
                 onClick={function() { setColor(c.name) }} 
                 className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`} 
                 style={{ backgroundColor: c.hex }} 
-                title={c.name} 
-              />
+                title={c.name} />
             )
           })}
           {filteredColors.length === 0 && (
@@ -207,4 +215,3 @@ export default function FashionTool(props: any) {
           </select>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-[11px]">
