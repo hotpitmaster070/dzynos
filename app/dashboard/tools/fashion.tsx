@@ -8,7 +8,7 @@ const FALLBACK_COLORS = [
 ]
 
 const CURRENCIES = [
-  { code: "USD", symbol: "\$" },
+  { code: "USD", symbol: "$" },
   { code: "EUR", symbol: "€" },
   { code: "GBP", symbol: "£" },
   { code: "AZN", symbol: "₼" },
@@ -28,7 +28,13 @@ export default function FashionTool(props) {
   const p = (project && project.props) || {}
 
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
+  
+  // Умное состояние для динамической палитры
+  const [colors, setColors] = useState([])
   const [color, setColor] = useState(p["Цвет"] || "Cream")
+  const [newColorHex, setNewColorHex] = useState("#2dd4bf")
+  const [newColorName, setNewColorName] = useState("")
+
   const [img, setImg] = useState((project && project.image_url) || "")
   const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
   const [backOpen, setBackOpen] = useState(Number(p["Спина %"] || 0))
@@ -46,7 +52,21 @@ export default function FashionTool(props) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  let currentSymbol = "\$"
+  // Загрузка палитры из пропсов Supabase
+  useEffect(() => {
+    let dbPalette = FALLBACK_COLORS
+    try {
+      if (p["Палитра"]) {
+        dbPalette = typeof p["Палитра"] === 'string' ? JSON.parse(p["Палитра"]) : p["Палитра"]
+      }
+    } catch (e) { 
+      dbPalette = FALLBACK_COLORS 
+    }
+    const mapped = dbPalette.map(c => typeof c === 'string' ? { name: c, hex: c } : c)
+    setColors(mapped)
+  }, [project])
+
+  let currentSymbol = "$"
   for (let i = 0; i < CURRENCIES.length; i++) {
     if (CURRENCIES[i].code === currency) {
       currentSymbol = CURRENCIES[i].symbol
@@ -54,9 +74,9 @@ export default function FashionTool(props) {
   }
 
   let currentHex = "#e8dcc6"
-  for (let i = 0; i < FALLBACK_COLORS.length; i++) {
-    if (FALLBACK_COLORS[i].name === color) {
-      currentHex = FALLBACK_COLORS[i].hex
+  for (let i = 0; i < colors.length; i++) {
+    if (colors[i].name === color) {
+      currentHex = colors[i].hex
     }
   }
 
@@ -65,6 +85,19 @@ export default function FashionTool(props) {
       setImg(project.image_url)
     }
   }, [project])
+
+  // Функция добавления нового цвета в базу данных прямо с телефона
+  const handleAddColor = () => {
+    const name = newColorName.trim() || `Color ${colors.length + 1}`
+    const updatedColors = [...colors, { name: name, hex: newColorHex }]
+    setColors(updatedColors)
+    setColor(name)
+    setNewColorName("")
+    
+    if (onUpdate) {
+      onUpdate({ "Палитра": JSON.stringify(updatedColors) })
+    }
+  }
 
   useEffect(() => {
     if (!onUpdate) return
@@ -151,27 +184,38 @@ export default function FashionTool(props) {
               </div>
             </div>
           </div>
+
+          {/* ТОП-БЛОК ДИНАМИЧЕСКОЙ ПАЛИТРЫ ЦВЕТОВ */}
+          <div className="border-t border-white/5 pt-3">
+            <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2.5">🎨 Fabric Palette ({colors.length})</h4>
+            <div className="flex gap-2 flex-wrap items-center max-h-[100px] overflow-y-auto p-1 bg-black/20 rounded-xl">
+              {colors.map(c => (
+                <button 
+                  type="button" 
+                  key={c.name} 
+                  onClick={() => setColor(c.name)} 
+                  className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} 
+                  style={{ backgroundColor: c.hex }} 
+                  title={c.name} 
+                />
+              ))}
+            </div>
+            
+            {/* Панель добавления нового кастомного цвета */}
+            <div className="mt-3 bg-white/[0.02] border border-white/5 p-2 rounded-xl space-y-2">
+              <div className="text-[9px] text-white/40 uppercase">Add custom color</div>
+              <div className="flex gap-2 items-center">
+                <input type="color" value={newColorHex} onChange={e => setNewColorHex(e.target.value)} className="w-7 h-7 bg-transparent border-0 rounded cursor-pointer" />
+                <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)} placeholder="Color name (e.g. Silk Blue)" className="flex-1 bg-black border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white outline-none" />
+                <button type="button" onClick={handleAddColor} className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg text-[11px] transition">+</button>
+              </div>
+            </div>
+            <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
+          </div>
         </div>
 
         <div className="bg-[#0d0f14] border border-white/5 rounded-2xl p-4 space-y-4">
           <div className="flex justify-between items-center">
             <h4 className="font-bold text-white text-[11px] uppercase">📋 Tech Pack Specs</h4>
             <select value={currency} onChange={e => setCurrency(e.target.value)} className="bg-black border border-white/10 rounded-lg text-white text-[11px]">
-              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
-            </select>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <div><label className="text-[9px] text-white/40 uppercase">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={e => setMeters(Number(e.target.value))} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-1.5 text-[12px]" /></div>
-            <div><label className="text-[9px] text-white/40 uppercase">Price</label><input type="number" value={priceM} onChange={e => setPriceM(Number(e.target.value))} className="w-full bg-white/[0.04] border border-white/10 rounded-lg p-1.5 text-[12px]" /></div>
-          </div>
-
-          <div className="bg-black p-3 rounded-xl border border-white/5 space-y-1.5 text-[12px]">
-            <div className="flex justify-between text-white/50"><span>Total Cost</span><span className="text-[#2dd4bf]">{currentSymbol}{total.toFixed(2)}</span></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-       }
-    
+  
