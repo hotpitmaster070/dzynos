@@ -1,5 +1,5 @@
 "use client"
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 
 const REAL_PANTONE_DATABASE = [
   { name: "Classic Blue (Pantone 19-4052)", hex: "#0f4c81" },
@@ -60,7 +60,6 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  // Абсолютно безопасный поиск без циклов
   const matchedCurrency = CURRENCIES.find(function(c) { return c.code === currency })
   const currentSymbol = matchedCurrency ? matchedCurrency.symbol : "$"
 
@@ -160,7 +159,8 @@ export default function FashionTool(props: any) {
                 onClick={function() { setColor(c.name) }} 
                 className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`} 
                 style={{ backgroundColor: c.hex }} 
-                title={c.name} />
+                title={c.name} 
+              />
             )
           })}
           {filteredColors.length === 0 && (
