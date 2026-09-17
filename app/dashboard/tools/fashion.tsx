@@ -22,11 +22,17 @@ const TOOLS_LIST = [
   { id: "cut", icon: "✂️", label: "Pattern" }
 ]
 
-export default function FashionTool({ project, onUpdate }) {
+export default function FashionTool({ project, onUpdate }: any) {
   const p = project?.props || {}
 
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
-  const currentSymbol = CURRENCIES.find(c => c.code === currency)?.symbol || "$"
+  
+  let currentSymbol = "$"
+  for (let i = 0; i < CURRENCIES.length; i++) {
+    if (CURRENCIES[i].code === currency) {
+      currentSymbol = CURRENCIES[i].symbol
+    }
+  }
 
   let dbPalette = FALLBACK_COLORS
   try {
@@ -37,7 +43,7 @@ export default function FashionTool({ project, onUpdate }) {
     dbPalette = FALLBACK_COLORS 
   }
 
-  const colors = dbPalette.map((c) => {
+  const colors = dbPalette.map(function(c: any) {
     if (typeof c === 'string') return { name: c, hex: c }
     return c
   })
@@ -98,22 +104,29 @@ export default function FashionTool({ project, onUpdate }) {
     alert("Saved to cloud! ✅")
   }
 
-  const currentHex = colors.find((c) => c.name === color)?.hex || "#e8dcc6"
+  let currentHex = "#e8dcc6"
+  for (let i = 0; i < colors.length; i++) {
+    if (colors[i].name === color) {
+      currentHex = colors[i].hex
+    }
+  }
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-white bg-black p-2 md:p-4 rounded-3xl">
       
       <div className="lg:col-span-1 flex lg:flex-col justify-center lg:justify-start items-center gap-3 bg-[#0d0f14] border border-white/5 p-3 rounded-2xl">
-        {TOOLS_LIST.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTool(t.id)}
-            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center text-[16px] transition relative group ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "bg-white/[0.04] text-white/60 hover:bg-white/10"}`}
-          >
-            <span>{t.icon}</span>
-            <span className="absolute left-14 bg-black border border-white/10 text-[#2dd4bf] text-[10px] px-2 py-1 rounded hidden lg:group-hover:inline z-50 whitespace-nowrap">{t.label}</span>
-          </button>
-        ))}
+        {TOOLS_LIST.map(function(t: any) {
+          return (
+            <button
+              key={t.id}
+              onClick={function() { setActiveTool(t.id) }}
+              className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center text-[16px] transition relative group ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "bg-white/[0.04] text-white/60 hover:bg-white/10"}`}
+            >
+              <span>{t.icon}</span>
+              <span className="absolute left-14 bg-black border border-white/10 text-[#2dd4bf] text-[10px] px-2 py-1 rounded hidden lg:group-hover:inline z-50 whitespace-nowrap">{t.label}</span>
+            </button>
+          )
+        })}
       </div>
 
       <div className="lg:col-span-6 space-y-4">
@@ -142,7 +155,7 @@ export default function FashionTool({ project, onUpdate }) {
             <div className="flex gap-2">
               <input 
                 value={prompt} 
-                onChange={e => setPrompt(e.target.value)} 
+                onChange={function(e) { setPrompt(e.target.value) }} 
                 placeholder="Describe texture: Baroque silk pattern..." 
                 className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-[#2dd4bf]" 
               />
@@ -158,7 +171,7 @@ export default function FashionTool({ project, onUpdate }) {
           </div>
 
           <div className="flex gap-2 mt-3">
-            <input value={img} onChange={e => setImg(e.target.value)} placeholder="Or paste custom image link..." className="flex-1 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-2 text-[11px] outline-none text-white/60 focus:border-white/20" />
+            <input value={img} onChange={function(e) { setImg(e.target.value) }} placeholder="Or paste custom image link..." className="flex-1 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-2 text-[11px] outline-none text-white/60 focus:border-white/20" />
             <button type="button" onClick={saveImage} className="px-4 bg-white/10 text-white hover:bg-white/20 transition rounded-lg text-[11px] font-bold">Save</button>
           </div>
         </div>
@@ -172,16 +185,18 @@ export default function FashionTool({ project, onUpdate }) {
             <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-[11px] mb-1"><span>Shoulders Width</span><span className="text-[#2dd4bf] font-mono">{shoulders} cm</span></div>
-                <input type="range" min="36" max="60" value={shoulders} onChange={e => setShoulders(Number(e.target.value))} className="w-full accent-[#2dd4bf] bg-white/10 h-1 rounded-full cursor-pointer" />
+                <input type="range" min="36" max="60" value={shoulders} onChange={function(e) { setShoulders(Number(e.target.value)) }} className="w-full accent-[#2dd4bf] bg-white/10 h-1 rounded-full cursor-pointer" />
               </div>
               <div>
                 <div className="flex justify-between text-[11px] mb-1"><span>Back Opening</span><span className="text-[#2dd4bf] font-mono">{backOpen} %</span></div>
-                <input type="range" min="0" max="100" value={backOpen} onChange={e => setBackOpen(Number(e.target.value))} className="w-full accent-[#2dd4bf] bg-white/10 h-1 rounded-full cursor-pointer" />
+                <input type="range" min="0" max="100" value={backOpen} onChange={function(e) { setBackOpen(Number(e.target.value)) }} className="w-full accent-[#2dd4bf] bg-white/10 h-1 rounded-full cursor-pointer" />
               </div>
               <div className="grid grid-cols-3 gap-1.5 pt-1">
-                {["Straight", "Flare", "Mermaid"].map(f => (
-                  <button type="button" key={f} onClick={() => setFlare(f)} className={`py-1.5 rounded-lg text-[10px] font-bold border transition ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10'}`}>{f}</button>
-                ))}
+                {["Straight", "Flare", "Mermaid"].map(function(f: string) {
+                  return (
+                    <button type="button" key={f} onClick={function() { setFlare(f) }} className={`py-1.5 rounded-lg text-[10px] font-bold border transition ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10'}`}>{f}</button>
+                  )
+                })}
               </div>
             </div>
           </div>
@@ -189,17 +204,14 @@ export default function FashionTool({ project, onUpdate }) {
           <div className="border-t border-white/5 pt-3">
             <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2">🎨 Fabric Palette ({colors.length})</h4>
             <div className="flex gap-2 flex-wrap">
-              {colors.map((c) => (
-                <button type="button" key={c.name} onClick={() => setColor(c.name)} className={`w-8 h-8 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
-              ))}
+              {colors.map(function(c: any) {
+                return (
+                  <button type="button" key={c.name} onClick={function() { setColor(c.name) }} className={`w-8 h-8 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+                )
+              })}
             </div>
             <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
           </div>
         </div>
 
-        <div className="bg-[#0d0f14] border border-white/5 rounded-2xl p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">📋 Tech Pack Specs</h4>
-            <select 
-              value={currency} 
-              onChange={e => setCurrency(e.target.value)} 
+  
