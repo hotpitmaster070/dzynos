@@ -8,7 +8,7 @@ const FALLBACK_COLORS = [
 ]
 
 const CURRENCIES = [
-  { code: "USD", symbol: "$" },
+  { code: "USD", symbol: "\$" },
   { code: "EUR", symbol: "€" },
   { code: "GBP", symbol: "£" },
   { code: "AZN", symbol: "₼" },
@@ -22,20 +22,14 @@ const TOOLS_LIST = [
   { id: "cut", icon: "✂️", label: "Pattern" }
 ]
 
-export default function FashionTool(props) {
+export default function FashionTool(props: any) {
   const project = props.project
   const onUpdate = props.onUpdate
-  const p = (project && project.props) || {}
+  const p = project?.props || {}
 
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
-  
-  // Умное состояние для динамической палитры
-  const [colors, setColors] = useState([])
   const [color, setColor] = useState(p["Цвет"] || "Cream")
-  const [newColorHex, setNewColorHex] = useState("#2dd4bf")
-  const [newColorName, setNewColorName] = useState("")
-
-  const [img, setImg] = useState((project && project.image_url) || "")
+  const [img, setImg] = useState(project?.image_url || "")
   const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
   const [backOpen, setBackOpen] = useState(Number(p["Спина %"] || 0))
   const [flare, setFlare] = useState(p["Клеш"] || "Straight")
@@ -52,52 +46,14 @@ export default function FashionTool(props) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  // Загрузка палитры из пропсов Supabase
-  useEffect(() => {
-    let dbPalette = FALLBACK_COLORS
-    try {
-      if (p["Палитра"]) {
-        dbPalette = typeof p["Палитра"] === 'string' ? JSON.parse(p["Палитра"]) : p["Палитра"]
-      }
-    } catch (e) { 
-      dbPalette = FALLBACK_COLORS 
-    }
-    const mapped = dbPalette.map(c => typeof c === 'string' ? { name: c, hex: c } : c)
-    setColors(mapped)
-  }, [project])
-
-  let currentSymbol = "$"
-  for (let i = 0; i < CURRENCIES.length; i++) {
-    if (CURRENCIES[i].code === currency) {
-      currentSymbol = CURRENCIES[i].symbol
-    }
-  }
-
-  let currentHex = "#e8dcc6"
-  for (let i = 0; i < colors.length; i++) {
-    if (colors[i].name === color) {
-      currentHex = colors[i].hex
-    }
-  }
+  const currentSymbol = CURRENCIES.find(c => c.code === currency)?.symbol || "\$"
+  const currentHex = FALLBACK_COLORS.find(c => c.name === color)?.hex || "#e8dcc6"
 
   useEffect(() => {
-    if (project && project.image_url) {
+    if (project?.image_url) {
       setImg(project.image_url)
     }
-  }, [project])
-
-  // Функция добавления нового цвета в базу данных прямо с телефона
-  const handleAddColor = () => {
-    const name = newColorName.trim() || `Color ${colors.length + 1}`
-    const updatedColors = [...colors, { name: name, hex: newColorHex }]
-    setColors(updatedColors)
-    setColor(name)
-    setNewColorName("")
-    
-    if (onUpdate) {
-      onUpdate({ "Палитра": JSON.stringify(updatedColors) })
-    }
-  }
+  }, [project?.id])
 
   useEffect(() => {
     if (!onUpdate) return
@@ -122,100 +78,100 @@ export default function FashionTool(props) {
       const mockPattern = "https://unsplash.com"
       setImg(mockPattern)
       setAiGenerating(false)
-      if (onUpdate) onUpdate({ image_url: mockPattern })
+      if (onUpdate) onUpdate({ image_url: mockPattern } as any)
     }, 1500)
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-white bg-black p-2 md:p-4 rounded-3xl">
-      <div className="lg:col-span-1 flex lg:flex-col justify-center lg:justify-start items-center gap-3 bg-[#0d0f14] border border-white/5 p-3 rounded-2xl">
-        {TOOLS_LIST.map(t => (
-          <button
-            key={t.id}
-            onClick={() => setActiveTool(t.id)}
-            className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center text-[16px] transition relative group ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "bg-white/[0.04] text-white/60 hover:bg-white/10"}`}
-          >
-            <span>{t.icon}</span>
-          </button>
-        ))}
-      </div>
-
-      <div className="lg:col-span-6 space-y-4">
-        <div className="bg-[#0d0f14] border border-[#2dd4bf]/20 rounded-2xl p-4 relative">
-          <div className="flex justify-between items-center mb-2">
-            <h3 className="font-bold text-[#2dd4bf] text-[13px] tracking-tight">{(project && project.title) || "Untitled Design"}</h3>
-            <span className="text-[10px] bg-white/[0.05] border border-white/10 px-2.5 py-0.5 rounded-full text-white/50">Studio 2D/3D</span>
+    <div className="space-y-4">
+      {/* ВИЗУАЛ И CAD ПАНЕЛЬ */}
+      <div className="bg-[#11141d] border border-[#2dd4bf]/20 rounded-2xl p-4">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-bold text-[#2dd4bf] text-[13px]">👗 {project?.title}</h3>
+          <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
+            {TOOLS_LIST.map(t => (
+              <button key={t.id} type="button" onClick={() => setActiveTool(t.id)} className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}>{t.icon}</button>
+            ))}
           </div>
-          
-          <div className="h-[360px] bg-[#050608] rounded-xl flex items-center justify-center relative overflow-hidden border border-white/5">
-            {img ? (
-              <img src={img} alt="Preview" className="h-full w-full object-cover rounded-xl" style={{ filter: `sepia(0.2) hue-rotate(10deg) drop-shadow(0 10px 20px ${currentHex}30)` }} />
-            ) : (
-              <div className="text-center space-y-2 text-white/20">
-                <div className="text-[11px]">Drop image URL or use AI Generator below</div>
-              </div>
-            )}
-          </div>
+        </div>
 
-          <div className="mt-4 bg-black/40 border border-white/5 p-3 rounded-xl space-y-2">
-            <div className="text-[10px] text-[#2dd4bf] font-bold uppercase">🤖 AI Fabric Texture Generator</div>
-            <div className="flex gap-2">
-              <input value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe texture..." className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-[12px] text-white outline-none" />
-              <button type="button" onClick={generateAiPattern} disabled={aiGenerating} className="px-4 bg-[#2dd4bf] text-black rounded-lg text-[12px] font-bold">
-                {aiGenerating ? "..." : "Generate"}
-              </button>
-            </div>
+        <div className="h-[340px] bg-black rounded-xl flex items-center justify-center relative overflow-hidden border border-white/5">
+          {img ? (
+            <img src={img} alt="Preview" className="h-full object-contain" style={{ filter: `drop-shadow(0 0 20px ${currentHex}40)` }} />
+          ) : (
+            <div className="text-white/20 text-[11px]">Drop image URL or use AI</div>
+          )}
+          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1 rounded-full text-[10px] text-white/60 font-mono">
+            {shoulders}cm • {backOpen}% • {flare} • {color}
+          </div>
+        </div>
+
+        {/* AI Генератор тканей прямо под фото */}
+        <div className="mt-3 bg-black/30 border border-white/5 p-2 rounded-xl space-y-2">
+          <div className="text-[9px] text-[#2dd4bf] uppercase tracking-wider font-bold">🤖 AI Fabric Texture Generator</div>
+          <div className="flex gap-2">
+            <input value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe texture (e.g. Silk pattern)..." className="flex-1 bg-black border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
+            <button type="button" onClick={generateAiPattern} disabled={aiGenerating} className="px-3 bg-[#2dd4bf] text-black rounded-lg text-[11px] font-bold">{aiGenerating ? "..." : "Gen"}</button>
           </div>
         </div>
       </div>
 
-      <div className="lg:col-span-5 space-y-4">
-        <div className="bg-[#0d0f14] border border-white/5 rounded-2xl p-4 space-y-4">
+      {/* ПАЛИТРА ЦВЕТОВ */}
+      <div className="bg-[#11141d] border border-white/10 rounded-2xl p-4">
+        <h4 className="font-bold text-[#2dd4bf] text-[11px] mb-3 uppercase tracking-wider">🎨 Fabric Palette</h4>
+        <div className="flex gap-2 flex-wrap">
+          {FALLBACK_COLORS.map(c => (
+            <button key={c.name} type="button" onClick={() => setColor(c.name)} className={`w-8 h-8 rounded-full border-2 ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/10'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+          ))}
+        </div>
+        <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white">{color}</b></div>
+      </div>
+
+      {/* КРОЙ */}
+      <div className="bg-[#151821] border border-white/10 rounded-2xl p-4">
+        <h4 className="font-bold text-[11px] mb-3 uppercase tracking-wider">📐 Pattern Engineering</h4>
+        <div className="space-y-3">
           <div>
-            <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase mb-2.5">📐 Pattern Engineering</h4>
-            <div className="space-y-3">
-              <div>
-                <div className="flex justify-between text-[11px] mb-1"><span>Shoulders Width</span><span>{shoulders} cm</span></div>
-                <input type="range" min="36" max="60" value={shoulders} onChange={e => setShoulders(Number(e.target.value))} className="w-full accent-[#2dd4bf]" />
-              </div>
-              <div>
-                <div className="flex justify-between text-[11px] mb-1"><span>Back Opening</span><span>{backOpen} %</span></div>
-                <input type="range" min="0" max="100" value={backOpen} onChange={e => setBackOpen(Number(e.target.value))} className="w-full accent-[#2dd4bf]" />
-              </div>
-            </div>
+            <div className="flex justify-between text-[11px]"><span>Shoulders Width</span><span className="text-[#2dd4bf] font-mono">{shoulders}cm</span></div>
+            <input type="range" min="36" max="60" value={shoulders} onChange={e => setShoulders(Number(e.target.value))} className="w-full accent-[#2dd4bf]" />
           </div>
-
-          {/* ТОП-БЛОК ДИНАМИЧЕСКОЙ ПАЛИТРЫ ЦВЕТОВ */}
-          <div className="border-t border-white/5 pt-3">
-            <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2.5">🎨 Fabric Palette ({colors.length})</h4>
-            <div className="flex gap-2 flex-wrap items-center max-h-[100px] overflow-y-auto p-1 bg-black/20 rounded-xl">
-              {colors.map(c => (
-                <button 
-                  type="button" 
-                  key={c.name} 
-                  onClick={() => setColor(c.name)} 
-                  className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} 
-                  style={{ backgroundColor: c.hex }} 
-                  title={c.name} 
-                />
-              ))}
-            </div>
-            
-            {/* Панель добавления нового кастомного цвета */}
-            <div className="mt-3 bg-white/[0.02] border border-white/5 p-2 rounded-xl space-y-2">
-              <div className="text-[9px] text-white/40 uppercase">Add custom color</div>
-              <div className="flex gap-2 items-center">
-                <input type="color" value={newColorHex} onChange={e => setNewColorHex(e.target.value)} className="w-7 h-7 bg-transparent border-0 rounded cursor-pointer" />
-                <input type="text" value={newColorName} onChange={e => setNewColorName(e.target.value)} placeholder="Color name (e.g. Silk Blue)" className="flex-1 bg-black border border-white/10 rounded-lg px-2 py-1 text-[11px] text-white outline-none" />
-                <button type="button" onClick={handleAddColor} className="px-3 py-1 bg-white/10 hover:bg-white/20 text-white font-bold rounded-lg text-[11px] transition">+</button>
-              </div>
-            </div>
-            <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
+          <div>
+            <div className="flex justify-between text-[11px]"><span>Back Opening</span><span className="text-[#2dd4bf] font-mono">{backOpen}%</span></div>
+            <input type="range" min="0" max="100" value={backOpen} onChange={e => setBackOpen(Number(e.target.value))} className="w-full accent-[#2dd4bf]" />
+          </div>
+          <div className="grid grid-cols-3 gap-1 pt-1">
+            {["Straight", "Flare", "Mermaid"].map(f => (
+              <button key={f} type="button" onClick={() => setFlare(f)} className={`py-1.5 rounded-lg text-[10px] font-bold border ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/10'}`}>{f}</button>
+            ))}
           </div>
         </div>
+      </div>
 
-        <div className="bg-[#0d0f14] border border-white/5 rounded-2xl p-4 space-y-4">
-          <div className="flex justify-between items-center">
-            <h4 className="font-bold text-white text-[11px] uppercase">📋 Tech Pack Specs</h4>
-            <select value={currency} onChange={e => setCurrency(e.target.value)} className="bg-black border border-white/10 rounded-lg text-white text-[11px]">
-  
+      {/* МУЛЬТИВАЛЮТНАЯ СМЕТА */}
+      <div className="bg-[#151821] border border-white/10 rounded-2xl p-4 space-y-3">
+        <div className="flex justify-between items-center">
+          <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">💸 Cost Calculation</h4>
+          <select value={currency} onChange={e => setCurrency(e.target.value)} className="bg-black border border-white/10 rounded-lg text-[#2dd4bf] font-bold text-[11px] px-1.5 py-0.5 outline-none">
+            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div><label className="text-white/40">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={e => setMeters(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
+          <div><label className="text-white/40">Price per meter</label><input type="number" value={priceM} onChange={e => setPriceM(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
+          <div><label className="text-white/40">Labor Cost</label><input type="number" value={work} onChange={e => setWork(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
+          <div><label className="text-white/40">Trims & Hardware</label><input type="number" value={furn} onChange={e => setFurn(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
+        </div>
+
+        <div className="mt-2 bg-black/40 rounded-xl p-3 space-y-1.5 text-[12px] border border-white/5">
+          <div className="flex justify-between text-white/50"><span>Fabric Cost</span><span>{currentSymbol}{totalFabric.toFixed(2)}</span></div>
+          <div className="flex justify-between text-white/50"><span>Labor + Trims</span><span>{currentSymbol}{(work + furn).toFixed(2)}</span></div>
+          <div className="flex justify-between border-t border-white/10 pt-2 text-[13px] font-bold"><span>Total Cost</span><b className="text-[#2dd4bf] font-mono">{currentSymbol}{total.toFixed(2)}</b></div>
+          <div className="flex justify-between text-[10px] text-white/30"><span>Target Retail (x2.5)</span><span className="font-mono">{currentSymbol}{(total * 2.5).toFixed(2)}</span></div>
+        </div>
+
+        <button type="button" onClick={() => window.print()} className="w-full bg-[#2dd4bf] text-black font-bold py-2.5 rounded-xl text-[12px] hover:bg-[#00f5d4] transition">📄 Export Tech Pack (PDF)</button>
+      </div>
+    </div>
+  )
+}
