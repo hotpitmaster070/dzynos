@@ -60,27 +60,18 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  let currentSymbol = "$"
-  for (let i = 0; i < CURRENCIES.length; i++) {
-    if (CURRENCIES[i].code === currency) {
-      currentSymbol = CURRENCIES[i].symbol
-    }
-  }
+  // Безопасный поиск символа валюты
+  const matchedCurrency = CURRENCIES.find(function(c) { return c.code === currency })
+  const currentSymbol = matchedCurrency ? matchedCurrency.symbol : "$"
 
-  let currentHex = "#0f4c81"
-  for (let j = 0; j < REAL_PANTONE_DATABASE.length; j++) {
-    if (REAL_PANTONE_DATABASE[j].name === color) {
-      currentHex = REAL_PANTONE_DATABASE[j].hex
-    }
-  }
+  // Безопасный поиск HEX цвета
+  const matchedColor = REAL_PANTONE_DATABASE.find(function(c) { return c.name === color })
+  const currentHex = matchedColor ? matchedColor.hex : "#0f4c81"
 
-  const filteredColors: any[] = []
-  for (let k = 0; k < REAL_PANTONE_DATABASE.length; k++) {
-    const match = REAL_PANTONE_DATABASE[k].name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
-    if (match) {
-      filteredColors.push(REAL_PANTONE_DATABASE[k])
-    }
-  }
+  // Безопасная фильтрация палитры по поиску
+  const filteredColors = REAL_PANTONE_DATABASE.filter(function(c) {
+    return c.name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+  })
 
   useEffect(() => {
     if (project?.image_url) {
@@ -121,9 +112,11 @@ export default function FashionTool(props: any) {
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-[#2dd4bf] text-[13px]">👗 {project?.title}</h3>
           <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
-            {TOOLS_LIST.map(t => (
-              <button key={t.id} type="button" onClick={() => setActiveTool(t.id)} className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}>{t.icon}</button>
-            ))}
+            {TOOLS_LIST.map(function(t) {
+              return (
+                <button key={t.id} type="button" onClick={function() { setActiveTool(t.id) }} className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}>{t.icon}</button>
+              )
+            })}
           </div>
         </div>
 
@@ -141,7 +134,7 @@ export default function FashionTool(props: any) {
         <div className="mt-3 bg-black/30 border border-white/5 p-2 rounded-xl space-y-2">
           <div className="text-[9px] text-[#2dd4bf] uppercase tracking-wider font-bold">🤖 AI Fabric Texture Generator</div>
           <div className="flex gap-2">
-            <input value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe texture (e.g. Silk pattern)..." className="flex-1 bg-black border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
+            <input value={prompt} onChange={function(e) { setPrompt(e.target.value) }} placeholder="Describe texture (e.g. Silk pattern)..." className="flex-1 bg-black border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
             <button type="button" onClick={generateAiPattern} disabled={aiGenerating} className="px-3 bg-[#2dd4bf] text-black rounded-lg text-[11px] font-bold">{aiGenerating ? "..." : "Gen"}</button>
           </div>
         </div>
@@ -155,22 +148,24 @@ export default function FashionTool(props: any) {
 
         <input 
           value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={function(e) { setSearchQuery(e.target.value) }}
           placeholder="🔍 Поиск цвета (например: Blue, Mint, Black...)" 
           className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white outline-none focus:border-[#2dd4bf] transition"
         />
 
         <div className="flex gap-2 flex-wrap max-h-[120px] overflow-y-auto p-1 bg-black/20 rounded-xl border border-white/5">
-          {filteredColors.map(c => (
-            <button 
-              key={c.name} 
-              type="button" 
-              onClick={() => setColor(c.name)} 
-              className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`} 
-              style={{ backgroundColor: c.hex }} 
-              title={c.name} 
-            />
-          ))}
+          {filteredColors.map(function(c) {
+            return (
+              <button 
+                key={c.name} 
+                type="button" 
+                onClick={function() { setColor(c.name) }} 
+                className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`} 
+                style={{ backgroundColor: c.hex }} 
+                title={c.name} 
+              />
+            )
+          })}
           {filteredColors.length === 0 && (
             <div className="text-[10px] text-white/30 p-2 w-full text-center">Цвет не найден</div>
           )}
@@ -186,16 +181,18 @@ export default function FashionTool(props: any) {
         <div className="space-y-3">
           <div>
             <div className="flex justify-between text-[11px]"><span>Shoulders Width</span><span className="text-[#2dd4bf] font-mono">{shoulders}cm</span></div>
-            <input type="range" min="36" max="60" value={shoulders} onChange={e => setShoulders(Number(e.target.value))} className="w-full accent-[#2dd4bf]" />
+            <input type="range" min="36" max="60" value={shoulders} onChange={function(e) { setShoulders(Number(e.target.value)) }} className="w-full accent-[#2dd4bf]" />
           </div>
           <div>
             <div className="flex justify-between text-[11px]"><span>Back Opening</span><span className="text-[#2dd4bf] font-mono">{backOpen}%</span></div>
-            <input type="range" min="0" max="100" value={backOpen} onChange={e => setBackOpen(Number(e.target.value))} className="w-full accent-[#2dd4bf]" />
+            <input type="range" min="0" max="100" value={backOpen} onChange={function(e) { setBackOpen(Number(e.target.value)) }} className="w-full accent-[#2dd4bf]" />
           </div>
           <div className="grid grid-cols-3 gap-1 pt-1">
-            {["Straight", "Flare", "Mermaid"].map(f => (
-              <button key={f} type="button" onClick={() => setFlare(f)} className={`py-1.5 rounded-lg text-[10px] font-bold border ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/10'}`}>{f}</button>
-            ))}
+            {["Straight", "Flare", "Mermaid"].map(function(f) {
+              return (
+                <button key={f} type="button" onClick={function() { setFlare(f) }} className={`py-1.5 rounded-lg text-[10px] font-bold border ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/10'}`}>{f}</button>
+              )
+            })}
           </div>
         </div>
       </div>
@@ -203,11 +200,11 @@ export default function FashionTool(props: any) {
       <div className="bg-[#151821] border border-white/10 rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center">
           <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">💸 Cost Calculation</h4>
-          <select value={currency} onChange={e => setCurrency(e.target.value)} className="bg-black border border-white/10 rounded-lg text-[#2dd4bf] font-bold text-[11px] px-1.5 py-0.5 outline-none">
-            {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.code}</option>)}
+          <select value={currency} onChange={function(e) { setCurrency(e.target.value) }} className="bg-black border border-white/10 rounded-lg text-[#2dd4bf] font-bold text-[11px] px-1.5 py-0.5 outline-none">
+            {CURRENCIES.map(function(c) {
+              return <option key={c.code} value={c.code}>{c.code}</option>
+            })}
           </select>
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[11px]">
-          <div><label className="text-white/40">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={e => setMeters(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
-                                                                                                
