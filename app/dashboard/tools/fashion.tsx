@@ -15,14 +15,12 @@ const CURRENCIES = [
   { code: "RUB", symbol: "₽" }
 ]
 
-export default function FashionTool({ project, onUpdate }) {
-  const p = (project && project.props) || {}
+export default function FashionTool({ project, onUpdate }: any) {
+  const p = project?.props || {}
 
-  // 1. Динамическая валюта
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
   const currentSymbol = CURRENCIES.find(c => c.code === currency)?.symbol || "$"
 
-  // 2. Цвета из базы данных без хардкода
   let dbPalette = FALLBACK_COLORS
   try {
     if (p["Палитра"]) {
@@ -32,26 +30,23 @@ export default function FashionTool({ project, onUpdate }) {
     dbPalette = FALLBACK_COLORS 
   }
 
-  const colors = dbPalette.map((c) => {
+  const colors = dbPalette.map((c: any) => {
     if (typeof c === 'string') return { name: c, hex: c }
     return c
   })
 
-  // 3. Состояния кроя и визуала
-  const [color, setColor] = useState(p["Цвет"] || (colors && colors[0] && colors[0].name) || "Cream")
-  const [img, setImg] = useState((project && project.image_url) || "")
+  const [color, setColor] = useState(p["Цвет"] || "Cream")
+  const [img, setImg] = useState(project?.image_url || "")
   const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
   const [backOpen, setBackOpen] = useState(Number(p["Спина %"] || 0))
   const [flare, setFlare] = useState(p["Клеш"] || "Straight")
   const [activeTool, setActiveTool] = useState("select")
 
-  // 4. Экономический блок (Глобальный)
   const [meters, setMeters] = useState(Number(p["Расход м"] || 2.3))
   const [priceM, setPriceM] = useState(Number(p["Цена за м"] || 18))
   const [work, setWork] = useState(Number(p["Пошив"] || 25))
   const [furn, setFurn] = useState(Number(p["Фурнитура"] || 5))
 
-  // 5. ИИ Генератор принтов
   const [prompt, setPrompt] = useState("")
   const [aiGenerating, setAiGenerating] = useState(false)
 
@@ -59,10 +54,11 @@ export default function FashionTool({ project, onUpdate }) {
   const total = totalFabric + work + furn
 
   useEffect(() => { 
-    setImg((project && project.image_url) || "") 
+    if (project?.image_url) {
+      setImg(project.image_url) 
+    }
   }, [project])
 
-  // Автосохранение изменений в Supabase
   useEffect(() => {
     if (!onUpdate) return
     onUpdate({
@@ -75,8 +71,7 @@ export default function FashionTool({ project, onUpdate }) {
       "Цена за м": String(priceM),
       "Пошив": String(work),
       "Фурнитура": String(furn),
-      "Себестоимость": String(total.toFixed(2)),
-      "Опыт": "Global configuration updated"
+      "Себестоимость": String(total.toFixed(2))
     })
   }, [currency, color, shoulders, backOpen, flare, meters, priceM, work, furn, total, onUpdate])
 
@@ -96,19 +91,20 @@ export default function FashionTool({ project, onUpdate }) {
     alert("Saved to cloud! ✅")
   }
 
-  const currentHex = colors.find((c) => c.name === color)?.hex || "#e8dcc6"
+  const currentHex = colors.find((c: any) => c.name === color)?.hex || "#e8dcc6"
+
+  const toolsList = [
+    { id: "select", icon: "◈", label: "Select" },
+    { id: "pen", icon: "✒️", label: "Pen Tool" },
+    { id: "sew", icon: "🧵", label: "Stitch" },
+    { id: "cut", icon: "✂️", label: "Pattern" }
+  ]
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-white bg-black p-2 md:p-4 rounded-3xl">
       
-      {/* ЛЕВАЯ ПАНЕЛЬ: ПРОФЕССИОНАЛЬНЫЕ CAD-ИНСТРУМЕНТЫ */}
       <div className="lg:col-span-1 flex lg:flex-col justify-center lg:justify-start items-center gap-3 bg-[#0d0f14] border border-white/5 p-3 rounded-2xl">
-        {[
-          { id: "select", icon: "◈", label: "Select" },
-          { id: "pen", icon: "✒️", label: "Pen Tool" },
-          { id: "sew", icon: "🧵", label: "Stitch" },
-          { id: "cut", icon: "✂️", label: "Pattern" },
-        ].map(t => (
+        {toolsList.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTool(t.id)}
@@ -120,7 +116,6 @@ export default function FashionTool({ project, onUpdate }) {
         ))}
       </div>
 
-      {/* ЦЕНТРАЛЬНАЯ ЗОНА: 3D ОКНО И ИИ ГЕНЕРАТОР ТКАНИ */}
       <div className="lg:col-span-6 space-y-4">
         <div className="bg-[#0d0f14] border border-[#2dd4bf]/20 rounded-2xl p-4 relative">
           <div className="flex justify-between items-center mb-2">
@@ -142,14 +137,13 @@ export default function FashionTool({ project, onUpdate }) {
             </div>
           </div>
 
-          {/* ИИ Вкладка */}
           <div className="mt-4 bg-black/40 border border-white/5 p-3 rounded-xl space-y-2">
             <div className="text-[10px] text-[#2dd4bf] font-bold uppercase tracking-wider">🤖 AI Fabric Texture Generator</div>
             <div className="flex gap-2">
               <input 
                 value={prompt} 
                 onChange={e => setPrompt(e.target.value)} 
-                placeholder="Describe texture: Baroque silk pattern, golden threads, seamless..." 
+                placeholder="Describe texture: Baroque silk pattern..." 
                 className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-[#2dd4bf]" 
               />
               <button 
@@ -170,10 +164,8 @@ export default function FashionTool({ project, onUpdate }) {
         </div>
       </div>
 
-      {/* ПРАВАЯ ПАНЕЛЬ: НАСТРОЙКИ КРОЯ, ТЕХПАК И СМЕТА */}
       <div className="lg:col-span-5 space-y-4">
         
-        {/* КРОЙ И ПАЛИТРА */}
         <div className="bg-[#0d0f14] border border-white/5 rounded-2xl p-4 space-y-4">
           <div>
             <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2.5">📐 Pattern Engineering</h4>
@@ -197,8 +189,18 @@ export default function FashionTool({ project, onUpdate }) {
           <div className="border-t border-white/5 pt-3">
             <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2">🎨 Fabric Palette ({colors.length})</h4>
             <div className="flex gap-2 flex-wrap">
-              {colors.map((c) => (
+              {colors.map((c: any) => (
                 <button type="button" key={c.name} onClick={() => setColor(c.name)} className={`w-8 h-8 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
               ))}
             </div>
-                
+            <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
+          </div>
+        </div>
+
+        <div className="bg-[#0d0f14] border border-white/5 rounded-2xl p-4 space-y-4">
+          <div className="flex justify-between items-center">
+            <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">📋 Tech Pack Specs</h4>
+            <select 
+              value={currency} 
+              onChange={e => setCurrency(e.target.value)} 
+    
