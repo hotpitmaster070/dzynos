@@ -15,6 +15,13 @@ const CURRENCIES = [
   { code: "RUB", symbol: "₽" }
 ]
 
+const TOOLS_LIST = [
+  { id: "select", icon: "◈", label: "Select" },
+  { id: "pen", icon: "✒️", label: "Pen Tool" },
+  { id: "sew", icon: "🧵", label: "Stitch" },
+  { id: "cut", icon: "✂️", label: "Pattern" }
+]
+
 export default function FashionTool({ project, onUpdate }: any) {
   const p = project?.props || {}
 
@@ -93,18 +100,11 @@ export default function FashionTool({ project, onUpdate }: any) {
 
   const currentHex = colors.find((c: any) => c.name === color)?.hex || "#e8dcc6"
 
-  const toolsList = [
-    { id: "select", icon: "◈", label: "Select" },
-    { id: "pen", icon: "✒️", label: "Pen Tool" },
-    { id: "sew", icon: "🧵", label: "Stitch" },
-    { id: "cut", icon: "✂️", label: "Pattern" }
-  ]
-
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-white bg-black p-2 md:p-4 rounded-3xl">
       
       <div className="lg:col-span-1 flex lg:flex-col justify-center lg:justify-start items-center gap-3 bg-[#0d0f14] border border-white/5 p-3 rounded-2xl">
-        {toolsList.map(t => (
+        {TOOLS_LIST.map(t => (
           <button
             key={t.id}
             onClick={() => setActiveTool(t.id)}
