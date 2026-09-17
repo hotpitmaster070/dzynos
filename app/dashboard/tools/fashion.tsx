@@ -15,29 +15,31 @@ const CURRENCIES = [
   { code: "RUB", symbol: "₽" }
 ]
 
-export default function FashionTool({ project, onUpdate }: any) {
-  const p = project?.props || {}
+export default function FashionTool({ project, onUpdate }) {
+  const p = (project && project.props) || {}
 
   // 1. Динамическая валюта
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
   const currentSymbol = CURRENCIES.find(c => c.code === currency)?.symbol || "$"
 
   // 2. Цвета из базы данных без хардкода
-  let dbPalette: any[] = FALLBACK_COLORS
+  let dbPalette = FALLBACK_COLORS
   try {
     if (p["Палитра"]) {
       dbPalette = typeof p["Палитра"] === 'string' ? JSON.parse(p["Палитра"]) : p["Палитра"]
     }
-  } catch { dbPalette = FALLBACK_COLORS }
+  } catch (e) { 
+    dbPalette = FALLBACK_COLORS 
+  }
 
-  const colors = dbPalette.map((c: any) => {
+  const colors = dbPalette.map((c) => {
     if (typeof c === 'string') return { name: c, hex: c }
     return c
   })
 
   // 3. Состояния кроя и визуала
-  const [color, setColor] = useState(p["Цвет"] || colors?.name || "Cream")
-  const [img, setImg] = useState(project?.image_url || "")
+  const [color, setColor] = useState(p["Цвет"] || (colors && colors[0] && colors[0].name) || "Cream")
+  const [img, setImg] = useState((project && project.image_url) || "")
   const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
   const [backOpen, setBackOpen] = useState(Number(p["Спина %"] || 0))
   const [flare, setFlare] = useState(p["Клеш"] || "Straight")
@@ -56,7 +58,9 @@ export default function FashionTool({ project, onUpdate }: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  useEffect(() => { setImg(project?.image_url || "") }, [project?.id])
+  useEffect(() => { 
+    setImg((project && project.image_url) || "") 
+  }, [project])
 
   // Автосохранение изменений в Supabase
   useEffect(() => {
@@ -72,9 +76,9 @@ export default function FashionTool({ project, onUpdate }: any) {
       "Пошив": String(work),
       "Фурнитура": String(furn),
       "Себестоимость": String(total.toFixed(2)),
-      "Опыт": `Валюта ${currency}, Цвет ${color}, Плечи ${shoulders}см, Клеш ${flare}`
+      "Опыт": "Global configuration updated"
     })
-  }, [currency, color, shoulders, backOpen, flare, meters, priceM, work, furn, onUpdate, total])
+  }, [currency, color, shoulders, backOpen, flare, meters, priceM, work, furn, total, onUpdate])
 
   const generateAiPattern = () => {
     if (!prompt) return
@@ -83,16 +87,16 @@ export default function FashionTool({ project, onUpdate }: any) {
       const mockPattern = "https://unsplash.com"
       setImg(mockPattern)
       setAiGenerating(false)
-      if (onUpdate) onUpdate({ image_url: mockPattern } as any)
+      if (onUpdate) onUpdate({ image_url: mockPattern })
     }, 1500)
   }
 
   const saveImage = () => {
-    if (onUpdate && img) onUpdate({ image_url: img } as any)
+    if (onUpdate && img) onUpdate({ image_url: img })
     alert("Saved to cloud! ✅")
   }
 
-  const currentHex = colors.find((c: any) => c.name === color)?.hex || "#e8dcc6"
+  const currentHex = colors.find((c) => c.name === color)?.hex || "#e8dcc6"
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 text-white bg-black p-2 md:p-4 rounded-3xl">
@@ -110,7 +114,7 @@ export default function FashionTool({ project, onUpdate }: any) {
             onClick={() => setActiveTool(t.id)}
             className={`w-11 h-11 rounded-xl flex flex-col items-center justify-center text-[16px] transition relative group ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "bg-white/[0.04] text-white/60 hover:bg-white/10"}`}
           >
-            {t.icon}
+            <span>{t.icon}</span>
             <span className="absolute left-14 bg-black border border-white/10 text-[#2dd4bf] text-[10px] px-2 py-1 rounded hidden lg:group-hover:inline z-50 whitespace-nowrap">{t.label}</span>
           </button>
         ))}
@@ -120,13 +124,13 @@ export default function FashionTool({ project, onUpdate }: any) {
       <div className="lg:col-span-6 space-y-4">
         <div className="bg-[#0d0f14] border border-[#2dd4bf]/20 rounded-2xl p-4 relative">
           <div className="flex justify-between items-center mb-2">
-            <h3 className="font-bold text-[#2dd4bf] text-[13px] tracking-tight">👗 {project?.title || "Untitled Design"}</h3>
+            <h3 className="font-bold text-[#2dd4bf] text-[13px] tracking-tight">{project?.title || "Untitled Design"}</h3>
             <span className="text-[10px] bg-white/[0.05] border border-white/10 px-2.5 py-0.5 rounded-full text-white/50 uppercase tracking-wider">Studio 2D/3D</span>
           </div>
           
           <div className="h-[360px] bg-[#050608] rounded-xl flex items-center justify-center relative overflow-hidden border border-white/5">
             {img ? (
-              <img src={img} className="h-full w-full object-cover transition-all duration-500 rounded-xl" style={{ filter: `sepia(0.2) hue-rotate(10deg) drop-shadow(0 10px 20px ${currentHex}30)` }} />
+              <img src={img} alt="Preview" className="h-full w-full object-cover transition-all duration-500 rounded-xl" style={{ filter: `sepia(0.2) hue-rotate(10deg) drop-shadow(0 10px 20px ${currentHex}30)` }} />
             ) : (
               <div className="text-center space-y-2 text-white/20">
                 <div className="text-[28px]">◈</div>
@@ -149,6 +153,7 @@ export default function FashionTool({ project, onUpdate }: any) {
                 className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-[12px] text-white outline-none focus:border-[#2dd4bf]" 
               />
               <button 
+                type="button"
                 onClick={generateAiPattern} 
                 disabled={aiGenerating} 
                 className="px-4 bg-[#2dd4bf] text-black rounded-lg text-[12px] font-bold hover:bg-[#00f5d4] transition disabled:opacity-50"
@@ -160,7 +165,7 @@ export default function FashionTool({ project, onUpdate }: any) {
 
           <div className="flex gap-2 mt-3">
             <input value={img} onChange={e => setImg(e.target.value)} placeholder="Or paste custom image link..." className="flex-1 bg-white/[0.03] border border-white/5 rounded-lg px-3 py-2 text-[11px] outline-none text-white/60 focus:border-white/20" />
-            <button onClick={saveImage} className="px-4 bg-white/10 text-white hover:bg-white/20 transition rounded-lg text-[11px] font-bold">Save</button>
+            <button type="button" onClick={saveImage} className="px-4 bg-white/10 text-white hover:bg-white/20 transition rounded-lg text-[11px] font-bold">Save</button>
           </div>
         </div>
       </div>
@@ -183,7 +188,7 @@ export default function FashionTool({ project, onUpdate }: any) {
               </div>
               <div className="grid grid-cols-3 gap-1.5 pt-1">
                 {["Straight", "Flare", "Mermaid"].map(f => (
-                  <button key={f} onClick={() => setFlare(f)} className={`py-1.5 rounded-lg text-[10px] font-bold border transition ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10'}`}>{f}</button>
+                  <button type="button" key={f} onClick={() => setFlare(f)} className={`py-1.5 rounded-lg text-[10px] font-bold border transition ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/5 hover:bg-white/10'}`}>{f}</button>
                 ))}
               </div>
             </div>
@@ -192,9 +197,8 @@ export default function FashionTool({ project, onUpdate }: any) {
           <div className="border-t border-white/5 pt-3">
             <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider mb-2">🎨 Fabric Palette ({colors.length})</h4>
             <div className="flex gap-2 flex-wrap">
-              {colors.map((c: any) => (
-                <button key={c.name} onClick={() => setColor(c.name)} className={`w-8 h-8 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
+              {colors.map((c) => (
+                <button type="button" key={c.name} onClick={() => setColor(c.name)} className={`w-8 h-8 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-transparent'}`} style={{ backgroundColor: c.hex }} title={c.name} />
               ))}
             </div>
-            <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
-            
+                
