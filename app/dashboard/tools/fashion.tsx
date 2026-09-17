@@ -206,3 +206,29 @@ export default function FashionTool(props: any) {
         <div className="flex justify-between items-center">
           <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">💸 Cost Calculation</h4>
           <select value={currency} onChange={function(e) { setCurrency(e.target.value) }} className="bg-black border border-white/10 rounded-lg text-[#2dd4bf] font-bold text-[11px] px-1.5 py-0.5 outline-none">
+            {CURRENCIES.map(function(c) {
+              return <option key={c.code} value={c.code}>{c.code}</option>
+            })}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div><label className="text-white/40">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={function(e) { setMeters(Number(e.target.value)) }} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white" /></div>
+          <div><label className="text-white/40">Price per meter</label><input type="number" value={priceM} onChange={function(e) { setPriceM(Number(e.target.value)) }} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white" /></div>
+          <div><label className="text-white/40">Labor Cost</label><input type="number" value={work} onChange={function(e) { setWork(Number(e.target.value)) }} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white" /></div>
+          <div><label className="text-white/40">Trims & Hardware</label><input type="number" value={furn} onChange={function(e) { setFurn(Number(e.target.value)) }} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1 text-white" /></div>
+        </div>
+
+        <div className="mt-2 bg-black/40 rounded-xl p-3 space-y-1.5 text-[12px] border border-white/5">
+          <div className="flex justify-between text-white/50"><span>Fabric Cost</span><span>{currentSymbol}{totalFabric.toFixed(2)}</span></div>
+          <div className="flex justify-between text-white/50"><span>Labor + Trims</span><span>{currentSymbol}{(work + furn).toFixed(2)}</span></div>
+          <div className="flex justify-between border-t border-white/10 pt-2 text-[13px] font-bold"><span>Total Cost</span><b className="text-[#2dd4bf] font-mono">{currentSymbol}{total.toFixed(2)}</b></div>
+          <div className="flex justify-between text-[10px] text-white/30"><span>Target Retail (x2.5)</span><span className="font-mono">{currentSymbol}{(total * 2.5).toFixed(2)}</span></div>
+        </div>
+
+        <button type="button" onClick={function() { window.print() }} className="w-full bg-[#2dd4bf] text-black font-bold py-2.5 rounded-xl text-[12px] hover:bg-[#00f5d4] transition">📄 Export Tech Pack (PDF)</button>
+      </div>
+    </div>
+  )
+}
+
