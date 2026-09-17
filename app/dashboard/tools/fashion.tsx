@@ -1,5 +1,5 @@
 "use client"
-import React, { useState, useEffect } from "react"
+import { useState, useEffect } from "react"
 
 const REAL_PANTONE_DATABASE = [
   { name: "Classic Blue (Pantone 19-4052)", hex: "#0f4c81" },
@@ -28,10 +28,10 @@ const CURRENCIES = [
 ]
 
 const TOOLS_LIST = [
-  { id: "select", icon: "◈" },
-  { id: "pen", icon: "✒️" },
-  { id: "sew", icon: "🧵" },
-  { id: "cut", icon: "✂️" }
+  { id: "select", icon: "◈", label: "Select" },
+  { id: "pen", icon: "✒️", label: "Pen Tool" },
+  { id: "sew", icon: "🧵", label: "Stitch" },
+  { id: "cut", icon: "✂️", label: "Pattern" }
 ]
 
 export default function FashionTool(props: any) {
@@ -41,6 +41,7 @@ export default function FashionTool(props: any) {
 
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
   const [color, setColor] = useState(p["Цвет"] || "Classic Blue (Pantone 19-4052)")
+  const [searchQuery, setSearchQuery] = useState("")
 
   const [img, setImg] = useState(project?.image_url || "")
   const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
@@ -59,20 +60,18 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  // Замена потенциально опасных .find на классическую логику
-  let currentSymbol = "$"
-  for (let i = 0; i < CURRENCIES.length; i++) {
-    if (CURRENCIES[i].code === currency) {
-      currentSymbol = CURRENCIES[i].symbol
-    }
-  }
+  // Поиск символа валюты
+  const matchedCurrency = CURRENCIES.find(function(c) { return c.code === currency })
+  const currentSymbol = matchedCurrency ? matchedCurrency.symbol : "$"
 
-  let currentHex = "#0f4c81"
-  for (let j = 0; j < REAL_PANTONE_DATABASE.length; j++) {
-    if (REAL_PANTONE_DATABASE[j].name === color) {
-      currentHex = REAL_PANTONE_DATABASE[j].hex
-    }
-  }
+  // Поиск HEX цвета
+  const matchedColor = REAL_PANTONE_DATABASE.find(function(c) { return c.name === color })
+  const currentHex = matchedColor ? matchedColor.hex : "#0f4c81"
+
+  // Фильтрация цветов
+  const filteredColors = REAL_PANTONE_DATABASE.filter(function(c) {
+    return c.name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+  })
 
   useEffect(() => {
     if (project?.image_url) {
@@ -103,7 +102,7 @@ export default function FashionTool(props: any) {
       const mockPattern = "https://unsplash.com"
       setImg(mockPattern)
       setAiGenerating(false)
-      if (onUpdate) onUpdate({ image_url: mockPattern })
+      if (onUpdate) onUpdate({ image_url: mockPattern } as any)
     }, 1500)
   }
 
@@ -116,14 +115,7 @@ export default function FashionTool(props: any) {
           <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
             {TOOLS_LIST.map(function(t) {
               return (
-                <button 
-                  key={t.id} 
-                  type="button" 
-                  onClick={function() { setActiveTool(t.id) }} 
-                  className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}
-                >
-                  {t.icon}
-                </button>
+                <button key={t.id} type="button" onClick={function() { setActiveTool(t.id) }} className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}>{t.icon}</button>
               )
             })}
           </div>
@@ -150,15 +142,22 @@ export default function FashionTool(props: any) {
         </div>
       </div>
 
-      {/* 3. ПРОФЕССИОНАЛЬНАЯ ПАЛИТРА ЦВЕТОВ PANTONE */}
+      {/* 3. ПРОФЕССИОНАЛЬНАЯ ПАЛИТРА ЦВЕТОВ С ПОИСКОМ */}
       <div className="bg-[#11141d] border border-white/10 rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center">
           <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider">🎨 Глобальная палитра цветов</h4>
-          <span className="text-[9px] text-white/30 font-mono">PANTONE</span>
+          <span className="text-[9px] text-white/30 font-mono">PANTONE / RAL</span>
         </div>
 
+        <input 
+          value={searchQuery}
+          onChange={function(e) { setSearchQuery(e.target.value) }}
+          placeholder="🔍 Поиск цвета (например: Blue, Mint, Black...)" 
+          className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white outline-none focus:border-[#2dd4bf] transition"
+        />
+
         <div className="flex gap-2 flex-wrap max-h-[120px] overflow-y-auto p-1 bg-black/20 rounded-xl border border-white/5">
-          {REAL_PANTONE_DATABASE.map(function(c) {
+          {filteredColors.map(function(c) {
             return (
               <button 
                 key={c.name} 
@@ -170,6 +169,9 @@ export default function FashionTool(props: any) {
               />
             )
           })}
+          {filteredColors.length === 0 && (
+            <div className="text-[10px] text-white/30 p-2 w-full text-center">Цвет не найден</div>
+          )}
         </div>
 
         <div className="text-[11px] bg-black/40 p-2.5 rounded-xl border border-white/5 truncate">
@@ -177,7 +179,7 @@ export default function FashionTool(props: any) {
         </div>
       </div>
 
-      {/* 4. ПАРАМЕТРИЧЕСКИЙ КРОЙ (БЕГУНКИ) */}
+      {/* 4. ПАРАМЕТРИЧЕСКИЙ КРОЙ */}
       <div className="bg-[#151821] border border-white/10 rounded-2xl p-4">
         <h4 className="font-bold text-[11px] mb-3 uppercase tracking-wider">📐 Pattern Engineering</h4>
         <div className="space-y-3">
@@ -199,16 +201,8 @@ export default function FashionTool(props: any) {
         </div>
       </div>
 
-      {/* 5. МУЛЬТИВАЛЮТНЫЙ КАЛЬКУЛЯТОР СЕБЕСТОИМОСТИ */}
+      {/* 5. МУЛЬТИВАЛЮТНЫЙ КАЛЬКУЛЯТОР */}
       <div className="bg-[#151821] border border-white/10 rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center">
           <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">💸 Cost Calculation</h4>
           <select value={currency} onChange={function(e) { setCurrency(e.target.value) }} className="bg-black border border-white/10 rounded-lg text-[#2dd4bf] font-bold text-[11px] px-1.5 py-0.5 outline-none">
-            {CURRENCIES.map(function(c) {
-              return <option key={c.code} value={c.code}>{c.code}</option>
-            })}
-          </select>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-[11px]">
-          <div><label className="text-white/40">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={function(e) { setMeters(Number(e.target.value)) }} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
