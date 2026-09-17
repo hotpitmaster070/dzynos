@@ -197,5 +197,4 @@ export default function FashionTool({ project, onUpdate }: any) {
               ))}
             </div>
             <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
-          </div>
-                           
+    
