@@ -1,7 +1,6 @@
 "use client"
 import { useState, useEffect } from "react"
 
-// Профессиональная база международных цветов с точными названиями
 const REAL_PANTONE_DATABASE = [
   { name: "Classic Blue (Pantone 19-4052)", hex: "#0f4c81" },
   { name: "Marsala (Pantone 18-1438)", hex: "#955251" },
@@ -42,8 +41,6 @@ export default function FashionTool(props: any) {
 
   const [currency, setCurrency] = useState(p["Валюта"] || "USD")
   const [color, setColor] = useState(p["Цвет"] || "Classic Blue (Pantone 19-4052)")
-  
-  // Состояние поиска для палитры
   const [searchQuery, setSearchQuery] = useState("")
 
   const [img, setImg] = useState(project?.image_url || "")
@@ -63,15 +60,30 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  const currentSymbol = CURRENCIES.find(c => c.code === currency)?.symbol || "$"
-  
-  // Поиск HEX-кода выбранного цвета в нашей большой базе
-  const currentHex = REAL_PANTONE_DATABASE.find(c => c.name === color)?.hex || "#0f4c81"
+  // Поиск знака валюты через классический цикл
+  let currentSymbol = "$"
+  for (let i = 0; i < CURRENCIES.length; i++) {
+    if (CURRENCIES[i].code === currency) {
+      currentSymbol = CURRENCIES[i].symbol
+    }
+  }
 
-  // Живая фильтрация цветов по вводу пользователя (поиск)
-  const filteredColors = REAL_PANTONE_DATABASE.filter(c => 
-    c.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  // Поиск HEX цвета через классический цикл
+  let currentHex = "#0f4c81"
+  for (let j = 0; i < REAL_PANTONE_DATABASE.length; j++) {
+    if (REAL_PANTONE_DATABASE[j].name === color) {
+      currentHex = REAL_PANTONE_DATABASE[j].hex
+    }
+  }
+
+  // Фильтрация палитры через классический цикл
+  const filteredColors: any[] = []
+  for (let k = 0; k < REAL_PANTONE_DATABASE.length; k++) {
+    const match = REAL_PANTONE_DATABASE[k].name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+    if (match) {
+      filteredColors.push(REAL_PANTONE_DATABASE[k])
+    }
+  }
 
   useEffect(() => {
     if (project?.image_url) {
@@ -108,7 +120,6 @@ export default function FashionTool(props: any) {
 
   return (
     <div className="space-y-4">
-      {/* ВИЗУАЛ И CAD ПАНЕЛЬ */}
       <div className="bg-[#11141d] border border-[#2dd4bf]/20 rounded-2xl p-4">
         <div className="flex justify-between items-center mb-3">
           <h3 className="font-bold text-[#2dd4bf] text-[13px]">👗 {project?.title}</h3>
@@ -121,7 +132,7 @@ export default function FashionTool(props: any) {
 
         <div className="h-[340px] bg-black rounded-xl flex items-center justify-center relative overflow-hidden border border-white/5">
           {img ? (
-            <img src={img} alt="Preview" className="h-full object-contain" style={{ filter: `drop-shadow(0 0 20px ${currentHex}50)` }} />
+            <img src={img} alt="Preview" className="h-full object-contain" style={{ filter: `drop-shadow(0 0 20px ${currentHex}40)` }} />
           ) : (
             <div className="text-white/20 text-[11px]">Drop image URL or use AI</div>
           )}
@@ -139,14 +150,12 @@ export default function FashionTool(props: any) {
         </div>
       </div>
 
-      {/* УМНАЯ ПОИСКОВАЯ ПАЛИТРА ЦВЕТОВ */}
       <div className="bg-[#11141d] border border-white/10 rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center">
           <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase tracking-wider">🎨 Глобальная палитра цветов</h4>
           <span className="text-[9px] text-white/30 font-mono">PANTONE / RAL</span>
         </div>
 
-        {/* Живой ИИ-поиск по названию */}
         <input 
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
@@ -154,7 +163,6 @@ export default function FashionTool(props: any) {
           className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white outline-none focus:border-[#2dd4bf] transition"
         />
 
-        {/* Сетка кружков скроллится, если цветов много */}
         <div className="flex gap-2 flex-wrap max-h-[120px] overflow-y-auto p-1 bg-black/20 rounded-xl border border-white/5">
           {filteredColors.map(c => (
             <button 
@@ -176,7 +184,6 @@ export default function FashionTool(props: any) {
         </div>
       </div>
 
-      {/* КРОЙ */}
       <div className="bg-[#151821] border border-white/10 rounded-2xl p-4">
         <h4 className="font-bold text-[11px] mb-3 uppercase tracking-wider">📐 Pattern Engineering</h4>
         <div className="space-y-3">
@@ -196,7 +203,6 @@ export default function FashionTool(props: any) {
         </div>
       </div>
 
-      {/* МУЛЬТИВАЛЮТНАЯ СМЕТА */}
       <div className="bg-[#151821] border border-white/10 rounded-2xl p-4 space-y-3">
         <div className="flex justify-between items-center">
           <h4 className="font-bold text-white text-[11px] uppercase tracking-wider">💸 Cost Calculation</h4>
@@ -206,4 +212,4 @@ export default function FashionTool(props: any) {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[11px]">
-   
+  
