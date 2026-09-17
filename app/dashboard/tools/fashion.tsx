@@ -36,7 +36,7 @@ export default function FashionTool({ project, onUpdate }: any) {
   })
 
   // 3. Состояния кроя и визуала
-  const [color, setColor] = useState(p["Цвет"] || colors[0]?.name || "Cream")
+  const [color, setColor] = useState(p["Цвет"] || colors?.name || "Cream")
   const [img, setImg] = useState(project?.image_url || "")
   const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
   const [backOpen, setBackOpen] = useState(Number(p["Спина %"] || 0))
@@ -74,7 +74,7 @@ export default function FashionTool({ project, onUpdate }: any) {
       "Себестоимость": String(total.toFixed(2)),
       "Опыт": `Валюта ${currency}, Цвет ${color}, Плечи ${shoulders}см, Клеш ${flare}`
     })
-  }, [currency, color, shoulders, backOpen, flare, meters, priceM, work, furn])
+  }, [currency, color, shoulders, backOpen, flare, meters, priceM, work, furn, onUpdate, total])
 
   const generateAiPattern = () => {
     if (!prompt) return
@@ -197,5 +197,4 @@ export default function FashionTool({ project, onUpdate }: any) {
               ))}
             </div>
             <div className="text-[11px] mt-2 text-white/40">Selected: <b className="text-white font-medium">{color}</b></div>
-          </div>
-                                           
+            
