@@ -60,7 +60,6 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  // Поиск знака валюты через классический цикл
   let currentSymbol = "$"
   for (let i = 0; i < CURRENCIES.length; i++) {
     if (CURRENCIES[i].code === currency) {
@@ -68,15 +67,13 @@ export default function FashionTool(props: any) {
     }
   }
 
-  // Поиск HEX цвета через классический цикл
   let currentHex = "#0f4c81"
-  for (let j = 0; i < REAL_PANTONE_DATABASE.length; j++) {
+  for (let j = 0; j < REAL_PANTONE_DATABASE.length; j++) {
     if (REAL_PANTONE_DATABASE[j].name === color) {
       currentHex = REAL_PANTONE_DATABASE[j].hex
     }
   }
 
-  // Фильтрация палитры через классический цикл
   const filteredColors: any[] = []
   for (let k = 0; k < REAL_PANTONE_DATABASE.length; k++) {
     const match = REAL_PANTONE_DATABASE[k].name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
@@ -212,4 +209,5 @@ export default function FashionTool(props: any) {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[11px]">
-  
+          <div><label className="text-white/40">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={e => setMeters(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-1" /></div>
+                                                                                                
