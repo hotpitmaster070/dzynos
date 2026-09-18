@@ -1,97 +1,32 @@
-// lib/fabricPresets.ts - Живая библиотека тканей DzynOS
-// Тянет все из Supabase, никакого хардкода
-
-export interface FabricProperty {
+// lib/fabricPresets.ts — безопасная версия без импорта supabaseClient
+export type FabricPreset = {
   id: string
-  slug: string
   name: string
-  category: string
+  description: string
   gsm: number
-  composition: string
-  world_standard: string
+  stretch: number
+  bend: number
   density: number
-  stiffness: number
-  roughness: number
-  metalness: number
-  is_custom: boolean
+  texture_url?: string
 }
 
-// Для работы без Supabase на первое время - фолбэк
-const FALLBACK_FABRICS: FabricProperty[] = [
-  {
-    id: '1', slug: 'velvet-280-rib', name: 'Вельвет 280 рифленый',
-    category: 'вельвет', gsm: 280, composition: '100% Cotton',
-    world_standard: 'ISO 1833-4', density: 280, stiffness: 0.75,
-    roughness: 0.9, metalness: 0, is_custom: false
-  },
-  {
-    id: '2', slug: 'denim-420-heavy', name: 'Деним 420 плотный',
-    category: 'деним', gsm: 420, composition: '100% Cotton',
-    world_standard: 'ISO 1833-2', density: 420, stiffness: 0.85,
-    roughness: 0.95, metalness: 0, is_custom: false
-  }
+export const FABRIC_PRESETS: FabricPreset[] = [
+  { id: 'cotton-180', name: 'Cotton 180', description: 'Легкий хлопок', gsm: 180, stretch: 0.1, bend: 0.8, density: 1 },
+  { id: 'cotton-240', name: 'Cotton 240', description: 'Плотный хлопок', gsm: 240, stretch: 0.05, bend: 0.9, density: 1.2 },
+  { id: 'silk-80', name: 'Silk 80', description: 'Шелк', gsm: 80, stretch: 0.3, bend: 0.3, density: 0.6 },
+  { id: 'velvet-280', name: 'Вельвет 280', description: 'Вельвет тяжелый', gsm: 280, stretch: 0.02, bend: 1.2, density: 1.4 },
+  { id: 'denim-340', name: 'Denim 340', description: 'Джинса', gsm: 340, stretch: 0.01, bend: 1.5, density: 1.6 },
 ]
 
-export async function getFabricsFromDB(search = ''): Promise<FabricProperty[]> {
+export async function getFabrics(): Promise<FabricPreset[]> {
   try {
-    // Динамический импорт чтобы не ломать если нет supabase клиента
-    const { supabase } = await import('./supabaseClient').catch(async () => {
-      const mod = await import('@/utils/supabase/client').catch(() => null)
-      return mod || { supabase: null }
-    }) as any
-
-    if (!supabase) {
-      console.log('Supabase не подключен, использую фолбэк')
-      return search ? FALLBACK_FABRICS.filter(f => f.name.toLowerCase().includes(search.toLowerCase())) : FALLBACK_FABRICS
+    // Пытаемся взять из Supabase если он есть
+    const mod = await import('@/utils/supabase/client').catch(() => null) as any
+    const supabase = mod?.supabase || mod?.createClient?.() || null
+    if (supabase) {
+      const { data } = await supabase.from('fabrics').select('*')
+      if (data && data.length > 0) return data as FabricPreset[]
     }
-
-    let query = supabase.from('fabrics').select('*').order('gsm', { ascending: true })
-    if (search) query = query.ilike('name', `%${search}%`)
-    
-    const { data, error } = await query
-    if (error || !data) return FALLBACK_FABRICS
-
-    return data.map((f: any) => ({
-      id: f.id,
-      slug: f.slug,
-      name: f.name,
-      category: f.category || 'custom',
-      gsm: f.gsm || 0,
-      composition: f.composition || '',
-      world_standard: f.world_standard || '',
-      density: f.physics?.density || f.gsm || 280,
-      stiffness: f.physics?.stiffness || 0.6,
-      roughness: f.physics?.roughness || 0.9,
-      metalness: f.physics?.metalness || 0,
-      is_custom: f.is_custom || false
-    }))
-  } catch (e) {
-    return FALLBACK_FABRICS
+  } catch {}
+  return FABRIC_PRESETS
   }
-}
-
-export async function addCustomFabric(name: string, gsm: number) {
-  try {
-    const { supabase } = await import('./supabaseClient') as any
-    const slug = name.toLowerCase().replace(/\s+/g, '-') + '-' + gsm + '-' + Date.now()
-    const stiffness = Math.min(0.9, gsm / 700)
-
-    const { data, error } = await supabase.from('fabrics').insert({
-      name, slug, gsm, category: 'custom', is_custom: true,
-      composition: 'Custom',
-      world_standard: `Custom • Auto-mapped ~${gsm}gsm`,
-      physics: { density: gsm, stiffness, roughness: 0.8, metalness: 0 }
-    }).select().single()
-
-    if (error) throw error
-    return data
-  } catch (e) {
-    console.error('Ошибка добавления ткани', e)
-    return null
-  }
-}
-
-// Для калькулятора лекал - берет жесткость ткани
-export function getFabricStiffness(fabric: FabricProperty): number {
-  return fabric.stiffness
-    }
