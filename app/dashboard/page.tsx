@@ -1,224 +1,157 @@
 "use client"
-export const dynamic = 'force-dynamic'
-import { useSearchParams } from "next/navigation"
-import { Suspense, useEffect, useState } from "react"
-import { supabase } from "../../lib/supabase"
+import { useState, useEffect } from "react"
+import { getFabricsFromDB, type FabricProperty } from "@/lib/fabricPresets"
+import { calculatePatterns } from "@/lib/patternCalculator"
 
-import FashionTool from "./tools/fashion"
-import InteriorTool from "./tools/interior"
-import LandscapeTool from "./tools/landscape"
-import ArchitectureTool from "./tools/architecture"
-import JewelryTool from "./tools/jewelry"
-import ProductTool from "./tools/product"
-import GraphicTool from "./tools/graphic"
-import WebTool from "./tools/web"
-import Visual3dTool from "./tools/visual3d"
-import CustomTool from "./tools/custom"
-
-const CATS = [
-  { id:'fashion', label:'👗 Moda / Fashion' },
-  { id:'interior', label:'🏠 Interyer' },
-  { id:'landscape', label:'🌿 Landşaft' },
-  { id:'architecture', label:'🏗️ Memarlıq' },
-  { id:'jewelry', label:'💍 Zərgərlik' },
-  { id:'product', label:'📦 Məhsul' },
-  { id:'graphic', label:'🎨 Qrafika' },
-  { id:'web', label:'💻 Web & App' },
-  { id:'3d', label:'🎬 3D & Vizual' },
-  { id:'custom', label:'➕ Custom' },
-]
-
-function DashboardInner() {
-  const search = useSearchParams()
-  const cat = search.get('cat') || 'fashion'
-  const [projects, setProjects] = useState<any[]>([])
-  const [selected, setSelected] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const [menuOpen, setMenuOpen] = useState(false)
-
-  // TOP PRODUCT MODALS
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [newTitle, setNewTitle] = useState("")
-  const [showFieldModal, setShowFieldModal] = useState(false)
-  const [newFieldKey, setNewFieldKey] = useState("")
-  const [newFieldValue, setNewFieldValue] = useState("")
-
-  const load = async () => {
-    setLoading(true)
-    const { data } = await supabase.from('projects').select('*').eq('cat', cat).order('created_at', {ascending:false})
-    if(data) setProjects(data)
-    setLoading(false)
-  }
-  useEffect(()=>{ load(); setSelected(null); setMenuOpen(false) },[cat])
-
-  const createProject = async () => {
-    if(!newTitle.trim()) return
-    const { data, error } = await supabase.from('projects').insert({ cat, title: newTitle.trim(), status: 'To Review', props: {} }).select().single()
-    if(error){ alert(error.message); return }
-    if(data) { setProjects([data,...projects]); setSelected(data); setShowAddModal(false); setNewTitle("") }
-  }
-
-  const updateProps = async (newFields:any) => {
-    if(!selected) return
-    const newProps = {...(selected.props||{}),...newFields}
-    await supabase.from('projects').update({ props: newProps }).eq('id', selected.id)
-    setSelected({...selected, props: newProps})
-    setProjects(prev=> prev.map(p=> p.id===selected.id? {...p, props:newProps} : p))
-  }
-
-  const createField = async () => {
-    if(!newFieldKey.trim() ||!selected) return
-    updateProps({ [newFieldKey.trim()]: newFieldValue })
-    setShowFieldModal(false); setNewFieldKey(""); setNewFieldValue("")
-  }
-
-  const renderTool = () => {
-    if(!selected) return <div className="text-white/20 text-center mt-20 text-[13px]">Выбери проект<br/>или создай новый</div>
-    const props = { project: selected, onUpdate: updateProps }
-    switch(cat){
-      case 'fashion': return <FashionTool {...props} />
-      case 'interior': return <InteriorTool {...props} />
-      case 'landscape': return <LandscapeTool {...props} />
-      case 'architecture': return <ArchitectureTool {...props} />
-      case 'jewelry': return <JewelryTool {...props} />
-      case 'product': return <ProductTool {...props} />
-      case 'graphic': return <GraphicTool {...props} />
-      case 'web': return <WebTool {...props} />
-      case '3d': return <Visual3dTool {...props} />
-      case 'custom': return <CustomTool {...props} />
-      default: return <CustomTool {...props} />
-    }
-  }
-
+// --- ВСТРОЕННЫЙ AR VIEWER чтобы не ломать сборку ---
+function ARViewer({ hex, img }: { hex: string, img: string }) {
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col md:flex-row relative">
-      <div className="md:hidden flex items-center justify-between p-4 bg-[#0a0a0a] border-b border-white/[0.06] sticky top-0 z-30 backdrop-blur-2xl">
-        <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold text-[15px]">DzynOS</span></div>
-        <button onClick={()=>setMenuOpen(!menuOpen)} className="w-9 h-9 rounded-full bg-white/[0.08] border border-white/10 flex items-center justify-center">
-          <div className="space-y-1">{menuOpen? <span className="text-[16px]">✕</span> : <><div className="w-4 h-0.5 bg-white"></div><div className="w-4 h-0.5 bg-white"></div><div className="w-4 h-0.5 bg-white"></div></>}
-          </div>
-        </button>
-      </div>
-
-      {menuOpen && (
-        <div className="md:hidden fixed inset-0 z-40 bg-black/80 backdrop-blur-xl pt-[64px]">
-          <div className="bg-[#111111] border-b border-white/10 p-5 rounded-b-[24px]">
-            <div className="space-y-2 text-[14px]">
-              {CATS.map(c=>(
-                <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-4 py-3.5 rounded-xl border transition-all ${cat==c.id?'bg-[#2dd4bf] text-black font-bold border-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)]':'text-white/70 bg-[#141414] border-white/[0.06] hover:bg-[#1e1e1e] hover:border-white/10'}`}>{c.label}</a>
-              ))}
-            </div>
-            <button onClick={()=>setShowAddModal(true)} className="mt-5 w-full py-3 rounded-xl bg-white text-black font-bold text-[14px]">+ New Project</button>
-            <a href="/" className="mt-3 block text-center text-[12px] text-white/40">← На лендинг</a>
-          </div>
+    <div className="relative h-[360px] bg-black rounded-xl overflow-hidden border border-white/5 flex items-center justify-center">
+      {img? (
+        <img src={img} alt="preview" className="h-full object-contain" style={{ filter: `drop-shadow(0 0 30px ${hex}60)` }} />
+      ) : (
+        <div className="text-white/20 text-[11px] text-center leading-4">
+          Drop image URL or use AI<br/>
+          <span className="text-[9px] opacity-50">3D манекен появится здесь</span>
         </div>
       )}
-
-      <div className="w-[260px] bg-[#0a0a0a] border-r border-white/[0.06] p-5 hidden md:flex flex-col">
-        <div className="flex items-center gap-2 mb-8"><div className="w-8 h-8 rounded-lg bg-[#2dd4bf] flex items-center justify-center text-black font-bold">◈</div><span className="font-bold tracking-tight">DzynOS</span><span className="text-[10px] bg-[#2dd4bf]/20 text-[#2dd4bf] px-1.5 py-0.5 rounded-full ml-1">TRUE BLACK</span></div>
-        <div className="space-y-2 text-[13px]">
-          {CATS.map(c=>(
-            <a key={c.id} href={`/dashboard?cat=${c.id}`} className={`block px-3 py-3 rounded-xl border transition-all ${cat==c.id?'bg-[#2dd4bf] text-black font-bold border-[#2dd4bf] shadow-[0_0_20px_rgba(45,212,191,0.3)]':'text-white/50 bg-[#141414] border-white/[0.06] hover:text-white hover:bg-[#1e1e1e]'}`}>{c.label}</a>
-          ))}
-        </div>
-        <button onClick={()=>setShowAddModal(true)} className="mt-auto w-full py-3 rounded-xl bg-white text-black font-bold text-[13px] hover:bg-[#2dd4bf] transition">+ New Project</button>
-        <a href="/" className="mt-3 text-center text-[11px] text-white/30 hover:text-white">← На лендинг</a>
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
+        <div className="bg-[#2dd4bf] text-black px-4 py-1.5 rounded-full font-bold text-[10px]">👓 AR 1:1</div>
+        <div className="bg-white/10 text-white/70 px-3 py-1.5 rounded-full text-[9px] font-mono">Orbit • Zoom</div>
       </div>
-
-      <div className="flex-1 p-4 md:p-6 overflow-auto bg-black">
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="text-[18px] font-bold tracking-tight">{cat.toUpperCase()} — <span className="text-white/40 font-normal">{projects.length}</span></h1>
-          <button onClick={()=>setShowAddModal(true)} className="md:hidden px-4 py-2 bg-[#2dd4bf] text-black rounded-full text-[12px] font-bold">+ New</button>
-        </div>
-        {loading? <div className="text-white/30 text-[13px]">Загрузка...</div> :
-        <div className="grid md:grid-cols-2 gap-3">
-          {projects.map(p=>(
-            <div key={p.id} onClick={()=>setSelected(p)} className={`p-4 rounded-[16px] border cursor-pointer transition ${selected?.id===p.id?'bg-[#2dd4bf]/[0.08] border-[#2dd4bf]/40 shadow-[0_0_20px_rgba(45,212,191,0.15)]':'bg-[#111111] border-white/[0.06] hover:border-white/10'}`}>
-              <div className="text-[10px] bg-[#2dd4bf]/15 text-[#2dd4bf] inline-flex px-2 py-0.5 rounded-full font-bold tracking-wide">{p.status}</div>
-              <div className="font-bold text-[14px] mt-2">{p.title}</div>
-              <div className="text-[11px] text-white/30 mt-1">{Object.keys(p.props||{}).length} полей</div>
-            </div>
-          ))}
-        </div>}
-      </div>
-
-      <div className="w-[360px] bg-[#0a0a0a] border-l border-white/[0.06] p-5 hidden lg:block overflow-auto">
-        {renderTool()}
-        {selected && (
-          <div className="mt-6 pt-6 border-t border-white/[0.06]">
-            <h4 className="text-[10px] text-white/30 uppercase tracking-[0.15em] mb-3">Все поля проекта</h4>
-            <div className="space-y-2">
-              {Object.entries(selected.props||{}).map(([k,v]:any)=>(
-                <div key={k} className="bg-white/[0.03] border border-white/[0.06] rounded-xl px-3 py-2.5">
-                  <div className="text-[10px] text-white/40 uppercase tracking-wide">{k}</div>
-                  <div className="text-[13px] mt-0.5">{String(v)}</div>
-                </div>
-              ))}
-            </div>
-            <button onClick={()=>setShowFieldModal(true)} className="mt-4 w-full py-2.5 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] hover:bg-white/10">+ Добавить поле</button>
-          </div>
-        )}
-      </div>
-
-      {selected && (
-        <div className="lg:hidden bg-[#0a0a0a] border-t border-white/[0.06] p-4">
-          {renderTool()}
-        </div>
-      )}
-
-      {/* TOP PRODUCT MODAL - CREATE PROJECT */}
-      {showAddModal && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="w-full max-w-[380px] bg-[#111111] border border-white/[0.08] rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
-            <h3 className="text-[18px] font-bold">New Project</h3>
-            <p className="text-[12px] text-white/40 mt-1">Category: {cat.toUpperCase()}</p>
-            <input
-              autoFocus
-              value={newTitle}
-              onChange={e=>setNewTitle(e.target.value)}
-              onKeyDown={e=>e.key==='Enter' && createProject()}
-              placeholder="Например: Villa in Baku..."
-              className="mt-5 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#2dd4bf]/50 focus:bg-[#141414] transition-all"
-            />
-            <div className="flex gap-2 mt-4">
-              <button onClick={()=>{setShowAddModal(false); setNewTitle("")}} className="flex-1 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] font-medium">Cancel</button>
-              <button onClick={createProject} className="flex-1 py-3 rounded-xl bg-[#2dd4bf] text-black text-[13px] font-bold">Create</button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TOP PRODUCT MODAL - ADD FIELD */}
-      {showFieldModal && (
-        <div className="fixed inset-0 z-[100] bg-black/80 backdrop-blur-xl flex items-center justify-center p-4">
-          <div className="w-full max-w-[380px] bg-[#111111] border border-white/[0.08] rounded-[24px] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
-            <h3 className="text-[18px] font-bold">Add Field</h3>
-            <p className="text-[12px] text-white/40 mt-1">Project: {selected?.title}</p>
-            <input
-              autoFocus
-              value={newFieldKey}
-              onChange={e=>setNewFieldKey(e.target.value)}
-              placeholder="Название поля (например: budget)"
-              className="mt-5 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#2dd4bf]/50 focus:bg-[#141414] transition-all"
-            />
-            <input
-              value={newFieldValue}
-              onChange={e=>setNewFieldValue(e.target.value)}
-              onKeyDown={e=>e.key==='Enter' && createField()}
-              placeholder="Значение"
-              className="mt-3 w-full bg-[#0a0a0a] border border-white/[0.08] rounded-xl px-4 py-3.5 text-[14px] outline-none focus:border-[#2dd4bf]/50 focus:bg-[#141414] transition-all"
-            />
-            <div className="flex gap-2 mt-4">
-              <button onClick={()=>{setShowFieldModal(false); setNewFieldKey(""); setNewFieldValue("")}} className="flex-1 py-3 rounded-xl bg-white/[0.06] border border-white/10 text-[13px] font-medium">Cancel</button>
-              <button onClick={createField} className="flex-1 py-3 rounded-xl bg-white text-black text-[13px] font-bold">Add</button>
-            </div>
-          </div>
-        </div>
-      )}
+      <div className="absolute top-2 right-2 w-2 h-2 bg-[#2dd4bf] rounded-full animate-pulse shadow-[0_0_10px_#2dd4bf]" />
     </div>
   )
 }
 
-export default function Dashboard(){
-  return <Suspense fallback={<div className="min-h-screen bg-black text-white p-10">Loading...</div>}><DashboardInner/></Suspense>
-                                    }
+const PANTONE = [
+  { name: "Bright White (Pantone 11-0601)", hex: "#f4f5f6" },
+  { name: "Classic Blue (Pantone 19-4052)", hex: "#0f4c81" },
+  { name: "Marsala (Pantone 18-1438)", hex: "#955251" },
+  { name: "Radiant Orchid (Pantone 18-3224)", hex: "#b565a7" },
+  { name: "Emerald (Pantone 17-5641)", hex: "#009473" },
+  { name: "Tangerine Tango (Pantone 17-1463)", hex: "#dd4124" },
+  { name: "Honeysuckle (Pantone 18-2120)", hex: "#d94f70" },
+  { name: "Turquoise (Pantone 15-5519)", hex: "#45b5aa" },
+  { name: "Mimosa (Pantone 14-0848)", hex: "#f0c05a" },
+  { name: "True Black (Pantone 19-4007)", hex: "#111111" },
+  { name: "Neon Mint (Custom)", hex: "#2dd4bf" },
+  { name: "Cyber Pink (Custom)", hex: "#ff007f" },
+]
+
+export default function FashionTool(props: any) {
+  const project = props.project; const onUpdate = props.onUpdate; const p = project?.props || {}
+  const [fabrics, setFabrics] = useState<FabricProperty[]>([])
+  const [selectedFabric, setSelectedFabric] = useState<FabricProperty | null>(null)
+  const [color, setColor] = useState(p["Цвет"] || PANTONE[0].name)
+  const [searchColor, setSearchColor] = useState("")
+  const [img, setImg] = useState(project?.image_url || "")
+  const [shoulders, setShoulders] = useState(Number(p["Плечи см"] || 48))
+  const [backOpen, setBackOpen] = useState(Number(p["Спина %"] || 22))
+  const [flare, setFlare] = useState(p["Клеш"] || "Straight")
+  const [meters, setMeters] = useState(Number(p["Расход м"] || 2.3))
+  const [priceM, setPriceM] = useState(Number(p["Цена за м"] || 18))
+  const [work, setWork] = useState(Number(p["Пошив"] || 25))
+  const [furn, setFurn] = useState(Number(p["Фурнитура"] || 5))
+  const [prompt, setPrompt] = useState(""); const [aiLoading, setAiLoading] = useState(false)
+  const [currency] = useState("USD")
+
+  const currentHex = PANTONE.find(c => c.name === color)?.hex || "#f4f5f6"
+  const filteredColors = PANTONE.filter(c => c.name.toLowerCase().includes(searchColor.toLowerCase()))
+  const pattern = calculatePatterns({ length: 90, chestWidth: shoulders, sleeveLength: 62, shoulders, backOpen }, selectedFabric?.stiffness || 0.6)
+  const totalFabric = meters * priceM; const total = totalFabric + work + furn
+
+  useEffect(() => { getFabricsFromDB().then(f => { setFabrics(f); if (f[0] &&!selectedFabric) setSelectedFabric(f[0] as any) }) }, [])
+  useEffect(() => { onUpdate?.({ "Цвет": color, "Ткань": selectedFabric?.name || "", "GSM": String(selectedFabric?.gsm || ""), "Плечи см": String(shoulders), "Спина %": String(backOpen), "Клеш": flare, "Расход м": String(meters), "Цена за м": String(priceM), "Пошив": String(work), "Фурнитура": String(furn), "Себестоимость": String(total.toFixed(2)), "Расход расчет": String(pattern.totalFabricRequired) }) }, [color, selectedFabric, shoulders, backOpen, flare, meters, priceM, work, furn, total])
+
+  const genTexture = async () => {
+    if (!prompt) return; setAiLoading(true)
+    try {
+      const res = await fetch("/api/generate-texture", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `${prompt} ${selectedFabric?.category || ''} fabric`, fabric: color }) })
+      const data = await res.json(); if (data.image) { setImg(data.image); onUpdate?.({ image_url: data.image } as any) }
+    } catch {
+      const safe = encodeURIComponent(`seamless ${prompt} ${selectedFabric?.name || ''} textile ${color}`); setImg(`https://image.pollinations.ai/prompt/${safe}?width=1024&height=1024&nologo=true&seed=${Date.now()}`)
+    } finally { setAiLoading(false) }
+  }
+
+  const exportTechPack = async () => {
+    const payload = { length: 90, chestWidth: shoulders, sleeveLength: 62, shoulders, backOpen, fabric: selectedFabric, color, cost: total, vectors: pattern.vectors }
+    const res = await fetch("/api/techpack", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+    const data = await res.json()
+    // Печать Tech Pack как PDF
+    const w = window.open("", "_blank"); if (!w) return
+    w.document.write(`<html><head><title>Tech Pack ${project?.title}</title></head><body style="font-family:monospace;padding:20px"><h2>${project?.title} - Tech Pack</h2><p>Fabric: ${selectedFabric?.name} ${selectedFabric?.gsm}gsm ${selectedFabric?.world_standard}</p><p>Color: ${color} ${currentHex}</p><p>Cost: $${total.toFixed(2)} Fabric need: ${pattern.totalFabricRequired}m (calc)</p><h3>Pattern Vectors</h3><svg viewBox="0 0 200 200" width="400" height="400" style="border:1px solid #000"><path d="${pattern.vectors.frontPiece}" stroke="black" fill="none" stroke-width="1"/><text x="5" y="15" font-size="8">FRONT</text></svg><svg viewBox="0 0 200 200" width="400" height="400" style="border:1px solid #000;margin-left:20px"><path d="${pattern.vectors.backPiece}" stroke="red" fill="none" stroke-width="1"/><text x="5" y="15" font-size="8">BACK ${backOpen}% open</text></svg><p>Seam: ${pattern.seamAllowance}cm GOST</p><img src="${img}" style="max-width:300px;border:1px solid #ccc;margin-top:20px"/></body></html>`); w.document.close(); w.print()
+  }
+
+  return (
+    <div className="space-y-4 pb-10">
+      {/* 1. 3D + AR */}
+      <div className="bg-[#11141d] border border-[#2dd4bf]/20 rounded-2xl p-4">
+        <div className="flex justify-between items-center mb-3">
+          <h3 className="font-bold text-[#2dd4bf] text-[12px]">👗 {project?.title || 'Футболка'} — 3D / AR</h3>
+          <span className="text-[9px] text-white/30 font-mono">{selectedFabric?.stiffness} stiffness • {selectedFabric?.density} density</span>
+        </div>
+        <ARViewer hex={currentHex} img={img} />
+        <div className="mt-3 bg-black/40 border border-white/5 p-2.5 rounded-xl flex gap-2">
+          <input value={prompt} onChange={e => setPrompt(e.target.value)} placeholder="Describe texture (e.g. Silk velvet gold pattern)..." className="flex-1 bg-black border border-white/10 rounded-lg px-3 py-2 text-[11px] outline-none text-white" />
+          <button onClick={genTexture} disabled={aiLoading} className="px-4 bg-[#2dd4bf] text-black rounded-lg text-[11px] font-bold">{aiLoading? "..." : "Gen"}</button>
+        </div>
+      </div>
+
+      {/* 2. FABRIC DB */}
+      <div className="bg-[#11141d] border border-white/10 rounded-2xl p-4 space-y-2">
+        <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase">🧵 Fabric Database — GSM / ISO / Physics</h4>
+        <div className="grid grid-cols-1 gap-2 max-h-[200px] overflow-y-auto pr-1">
+          {fabrics.map(f => (
+            <button key={f.id} onClick={() => setSelectedFabric(f)} className={`text-left p-3 rounded-xl border transition text-[11px] ${selectedFabric?.id === f.id? 'bg-[#2dd4bf]/10 border-[#2dd4bf] text-white' : 'bg-black/30 border-white/5 text-white/60 hover:border-white/20'}`}>
+              <div className="flex justify-between items-center"><b className="text-[12px]">{f.name}</b><span className="font-mono text-[#2dd4bf] text-[11px]">{f.gsm}gsm</span></div>
+              <div className="text-[9px] opacity-70 mt-1 flex gap-2"><span>{f.composition}</span><span>•</span><span>{f.world_standard}</span></div>
+              <div className="mt-1.5 flex gap-2 text-[8px] font-mono"><span className="bg-white/5 px-1.5 py-0.5 rounded">stiff {f.stiffness}</span><span className="bg-white/5 px-1.5 py-0.5 rounded">rough {f.roughness}</span><span className="bg-white/5 px-1.5 py-0.5 rounded">metal {f.metalness}</span></div>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* 3. COLOR */}
+      <div className="bg-[#11141d] border border-white/10 rounded-2xl p-4 space-y-3">
+        <h4 className="font-bold text-[#2dd4bf] text-[11px] uppercase">🎨 Глобальная палитра — Pantone / RAL</h4>
+        <input value={searchColor} onChange={e => setSearchColor(e.target.value)} placeholder="🔍 Поиск цвета (Blue, Mint, Black...)" className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-[11px] outline-none text-white" />
+        <div className="flex gap-2.5 flex-wrap p-2 bg-black/30 rounded-xl border border-white/5">
+          {filteredColors.map(c => <button key={c.name} onClick={() => setColor(c.name)} className={`w-9 h-9 rounded-full border-2 transition ${color === c.name? 'border-[#2dd4bf] scale-110 shadow-[0_0_10px_#2dd4bf]' : 'border-white/10'}`} style={{ backgroundColor: c.hex }} title={c.name} />)}
+        </div>
+        <div className="text-[11px] bg-black/50 p-2.5 rounded-xl border border-white/5">Выбран: <b className="text-[#2dd4bf]">{color}</b> <span className="inline-block w-3 h-3 rounded-full ml-2 align-middle" style={{ background: currentHex }} /></div>
+      </div>
+
+      {/* 4. PATTERN ENGINEERING + ВЕКТОРА */}
+      <div className="bg-[#151821] border border-white/10 rounded-2xl p-4 space-y-4">
+        <h4 className="font-bold text-[11px] uppercase">📐 Pattern Engineering — Live Vectors</h4>
+        <div><div className="flex justify-between text-[11px] mb-1"><span>Shoulders Width</span><span className="text-[#2dd4bf] font-mono">{shoulders}cm</span></div><input type="range" min={36} max={60} value={shoulders} onChange={e => setShoulders(Number(e.target.value))} className="w-full accent-[#2dd4bf]" /></div>
+        <div><div className="flex justify-between text-[11px] mb-1"><span>Back Opening</span><span className="text-[#2dd4bf] font-mono">{backOpen}%</span></div><input type="range" min={0} max={100} value={backOpen} onChange={e => setBackOpen(Number(e.target.value))} className="w-full accent-[#2dd4bf]" /></div>
+        <div className="grid grid-cols-3 gap-2">{["Straight", "Flare", "Mermaid"].map(f => <button key={f} onClick={() => setFlare(f)} className={`py-2 rounded-xl text-[11px] font-bold border ${flare === f? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/50 border-white/5'}`}>{f}</button>)}</div>
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-black rounded-xl p-2 border border-white/5"><div className="text-[9px] text-white/40 mb-1">FRONT PIECE — {pattern.seamAllowance}cm seam</div><svg viewBox="0 0 100 120" className="w-full h-[120px]"><path d={pattern.vectors.frontPiece} stroke="#2dd4bf" strokeWidth="0.8" fill="none" /></svg></div>
+          <div className="bg-black rounded-xl p-2 border border-white/5"><div className="text-[9px] text-white/40 mb-1">BACK PIECE — {backOpen}% open</div><svg viewBox="0 0 100 120" className="w-full h-[120px]"><path d={pattern.vectors.backPiece} stroke="white" strokeWidth="0.8" fill="none" /></svg></div>
+        </div>
+        <div className="text-[10px] font-mono text-white/30">Расход авто-расчет: {pattern.totalFabricRequired}m при ширине рулона 150см (с учетом усадки {((1 - (selectedFabric?.stiffness || 0.6)) * 3).toFixed(1)}%)</div>
+      </div>
+
+      {/* 5. COST */}
+      <div className="bg-[#151821] border border-white/10 rounded-2xl p-4 space-y-3">
+        <h4 className="font-bold text-[11px] uppercase">💸 Cost Calculation — {currency}</h4>
+        <div className="grid grid-cols-2 gap-2 text-[11px]">
+          <div><label className="text-white/40 text-[10px]">Fabric, m</label><input type="number" step="0.1" value={meters} onChange={e => setMeters(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white" /></div>
+          <div><label className="text-white/40 text-[10px]">Price per meter</label><input type="number" value={priceM} onChange={e => setPriceM(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white" /></div>
+          <div><label className="text-white/40 text-[10px]">Labor Cost</label><input type="number" value={work} onChange={e => setWork(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white" /></div>
+          <div><label className="text-white/40 text-[10px]">Trims</label><input type="number" value={furn} onChange={e => setFurn(Number(e.target.value))} className="w-full mt-1 bg-white/5 border border-white/10 rounded-lg px-2 py-2 text-white" /></div>
+        </div>
+        <div className="bg-black/40 rounded-xl p-3 space-y-1 text-[12px] border border-white/5">
+          <div className="flex justify-between text-white/50"><span>Fabric Cost</span><span>${totalFabric.toFixed(2)}</span></div>
+          <div className="flex justify-between text-white/50"><span>Labor + Trims</span><span>${(work + furn).toFixed(2)}</span></div>
+          <div className="flex justify-between border-t border-white/10 pt-2 font-bold"><span>Total Cost</span><b className="text-[#2dd4bf] font-mono">${total.toFixed(2)}</b></div>
+          <div className="flex justify-between text-[10px] text-white/30"><span>Target Retail (x2.5)</span><span className="font-mono">${(total * 2.5).toFixed(2)}</span></div>
+        </div>
+        <button onClick={exportTechPack} className="w-full bg-[#2dd4bf] text-black font-bold py-3 rounded-xl text-[13px]">📄 Export Tech Pack (PDF) — Фабричный файл</button>
+      </div>
+    </div>
+  )
+         }
