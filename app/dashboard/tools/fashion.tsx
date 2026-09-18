@@ -60,17 +60,14 @@ export default function FashionTool(props: any) {
   const totalFabric = meters * priceM
   const total = totalFabric + work + furn
 
-  // Поиск символа валюты
   const matchedCurrency = CURRENCIES.find(function(c) { return c.code === currency })
-  const currentSymbol = matchedCurrency ? matchedCurrency.symbol : "$"
+  const currentSymbol = matchedCurrency? matchedCurrency.symbol : "$"
 
-  // Поиск HEX цвета
   const matchedColor = REAL_PANTONE_DATABASE.find(function(c) { return c.name === color })
-  const currentHex = matchedColor ? matchedColor.hex : "#0f4c81"
+  const currentHex = matchedColor? matchedColor.hex : "#0f4c81"
 
-  // Фильтрация цветов
   const filteredColors = REAL_PANTONE_DATABASE.filter(function(c) {
-    return c.name.toLowerCase().indexOf(searchQuery.toLowerCase()) !== -1
+    return c.name.toLowerCase().indexOf(searchQuery.toLowerCase())!== -1
   })
 
   useEffect(() => {
@@ -95,15 +92,30 @@ export default function FashionTool(props: any) {
     })
   }, [currency, color, shoulders, backOpen, flare, meters, priceM, work, furn, total])
 
-  const generateAiPattern = () => {
+  // ИСПРАВЛЕННЫЙ ГЕНЕРАТОР — без Unsplash, работает без ключа и с ключом
+  const generateAiPattern = async () => {
     if (!prompt) return
     setAiGenerating(true)
-    setTimeout(function() {
-      const mockPattern = "https://unsplash.com"
-      setImg(mockPattern)
+    try {
+      const res = await fetch("/api/generate-texture", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt, fabric: color })
+      })
+      const data = await res.json()
+      if (data.image) {
+        setImg(data.image)
+        if (onUpdate) onUpdate({ image_url: data.image } as any)
+      }
+    } catch (e) {
+      // фолбэк если API еще не создан — бесплатно
+      const safePrompt = encodeURIComponent(`seamless fabric texture ${prompt} ${color} textile`)
+      const freeImage = `https://image.pollinations.ai/prompt/${safePrompt}?width=1024&height=1024&nologo=true&seed=${Date.now()}`
+      setImg(freeImage)
+      if (onUpdate) onUpdate({ image_url: freeImage } as any)
+    } finally {
       setAiGenerating(false)
-      if (onUpdate) onUpdate({ image_url: mockPattern } as any)
-    }, 1500)
+    }
   }
 
   return (
@@ -115,14 +127,14 @@ export default function FashionTool(props: any) {
           <div className="flex gap-1 bg-black/40 p-1 rounded-xl border border-white/5">
             {TOOLS_LIST.map(function(t) {
               return (
-                <button key={t.id} type="button" onClick={function() { setActiveTool(t.id) }} className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id ? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}>{t.icon}</button>
+                <button key={t.id} type="button" onClick={function() { setActiveTool(t.id) }} className={`px-2.5 py-1 rounded-lg text-[11px] transition ${activeTool === t.id? "bg-[#2dd4bf] text-black font-bold" : "text-white/40"}`}>{t.icon}</button>
               )
             })}
           </div>
         </div>
 
         <div className="h-[340px] bg-black rounded-xl flex items-center justify-center relative overflow-hidden border border-white/5">
-          {img ? (
+          {img? (
             <img src={img} alt="Preview" className="h-full object-contain" style={{ filter: `drop-shadow(0 0 20px ${currentHex}40)` }} />
           ) : (
             <div className="text-white/20 text-[11px]">Drop image URL or use AI</div>
@@ -132,13 +144,14 @@ export default function FashionTool(props: any) {
           </div>
         </div>
 
-        {/* 2. ИИ-ГЕНЕРАТОР ПРИНТОВ ТКАНИ */}
+        {/* 2. ИИ-ГЕНЕРАТОР ПРИНТОВ ТКАНИ — ИСПРАВЛЕН */}
         <div className="mt-3 bg-black/30 border border-white/5 p-2 rounded-xl space-y-2">
-          <div className="text-[9px] text-[#2dd4bf] uppercase tracking-wider font-bold">🤖 AI Fabric Texture Generator</div>
+          <div className="text-[9px] text-[#2dd4bf] uppercase tracking-wider font-bold">🤖 AI Fabric Texture Generator {aiGenerating? '(generating...)' : ''}</div>
           <div className="flex gap-2">
-            <input value={prompt} onChange={function(e) { setPrompt(e.target.value) }} placeholder="Describe texture (e.g. Silk pattern)..." className="flex-1 bg-black border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
-            <button type="button" onClick={generateAiPattern} disabled={aiGenerating} className="px-3 bg-[#2dd4bf] text-black rounded-lg text-[11px] font-bold">{aiGenerating ? "..." : "Gen"}</button>
+            <input value={prompt} onChange={function(e) { setPrompt(e.target.value) }} placeholder="Describe texture (e.g. Silk velvet gold pattern)..." className="flex-1 bg-black border border-white/10 rounded-lg px-2.5 py-1.5 text-[11px] outline-none" />
+            <button type="button" onClick={generateAiPattern} disabled={aiGenerating} className="px-3 bg-[#2dd4bf] text-black rounded-lg text-[11px] font-bold disabled:opacity-50">{aiGenerating? "..." : "Gen"}</button>
           </div>
+          <div className="text-[8px] text-white/20">Без ключа = free mode. С ключом FAL_KEY = FLUX Pro mode.</div>
         </div>
       </div>
 
@@ -149,23 +162,23 @@ export default function FashionTool(props: any) {
           <span className="text-[9px] text-white/30 font-mono">PANTONE / RAL</span>
         </div>
 
-        <input 
+        <input
           value={searchQuery}
           onChange={function(e) { setSearchQuery(e.target.value) }}
-          placeholder="🔍 Поиск цвета (например: Blue, Mint, Black...)" 
+          placeholder="🔍 Поиск цвета (например: Blue, Mint, Black...)"
           className="w-full bg-black border border-white/10 rounded-xl px-3 py-2 text-[11px] text-white outline-none focus:border-[#2dd4bf] transition"
         />
 
         <div className="flex gap-2 flex-wrap max-h-[120px] overflow-y-auto p-1 bg-black/20 rounded-xl border border-white/5">
           {filteredColors.map(function(c) {
             return (
-              <button 
-                key={c.name} 
-                type="button" 
-                onClick={function() { setColor(c.name) }} 
-                className={`w-7 h-7 rounded-full border-2 transition ${color === c.name ? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`} 
-                style={{ backgroundColor: c.hex }} 
-                title={c.name} 
+              <button
+                key={c.name}
+                type="button"
+                onClick={function() { setColor(c.name) }}
+                className={`w-7 h-7 rounded-full border-2 transition ${color === c.name? 'border-[#2dd4bf] scale-110' : 'border-white/5'}`}
+                style={{ backgroundColor: c.hex }}
+                title={c.name}
               />
             )
           })}
@@ -194,7 +207,7 @@ export default function FashionTool(props: any) {
           <div className="grid grid-cols-3 gap-1 pt-1">
             {["Straight", "Flare", "Mermaid"].map(function(f) {
               return (
-                <button key={f} type="button" onClick={function() { setFlare(f) }} className={`py-1.5 rounded-lg text-[10px] font-bold border ${flare === f ? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/10'}`}>{f}</button>
+                <button key={f} type="button" onClick={function() { setFlare(f) }} className={`py-1.5 rounded-lg text-[10px] font-bold border ${flare === f? 'bg-[#2dd4bf] text-black border-[#2dd4bf]' : 'bg-white/5 text-white/60 border-white/10'}`}>{f}</button>
               )
             })}
           </div>
@@ -226,9 +239,8 @@ export default function FashionTool(props: any) {
           <div className="flex justify-between text-[10px] text-white/30"><span>Target Retail (x2.5)</span><span className="font-mono">{currentSymbol}{(total * 2.5).toFixed(2)}</span></div>
         </div>
 
-        <button type="button" onClick={function() { window.print() }} className="w-full bg-[#2dd4bf] text-black font-bold py-2.5 rounded-xl text-[12px] hover:bg-[#00f5d4] transition">📄 Export Tech Pack (PDF)</button>
+        <button type="button" onClick={function() { if(typeof window!== 'undefined') window.print() }} className="w-full bg-[#2dd4bf] text-black font-bold py-2.5 rounded-xl text-[12px] hover:bg-[#00f5d4] transition">📄 Export Tech Pack (PDF)</button>
       </div>
     </div>
   )
 }
-
