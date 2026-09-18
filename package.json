@@ -1,17 +1,22 @@
 {
   "name": "dzynos",
-  "version": "1.0.0",
+  "version": "2.1.0",
   "scripts": { "dev": "next dev", "build": "next build", "start": "next start" },
   "dependencies": { 
     "next": "14.0.4", 
     "react": "18.2.0", 
     "react-dom": "18.2.0",
     "@supabase/supabase-js": "^2.45.0",
-    "tldraw": "^3.8.0"
+    "tldraw": "^3.8.0",
+    "three": "^0.160.0",
+    "@react-three/fiber": "^8.15.19",
+    "@react-three/drei": "^9.92.7",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "typescript": "5.0.4",
     "@types/react": "18.2.21",
+    "@types/three": "^0.160.0",
     "@types/node": "20.8.0",
     "tailwindcss": "3.4.1",
     "postcss": "8.4.33",
