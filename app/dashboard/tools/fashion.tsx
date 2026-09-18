@@ -1,6 +1,10 @@
 "use client"
 import { useState, useEffect } from "react"
-
+import dynamic from "next/dynamic"
+const ARViewer3D = dynamic(() => import("./3d/viewer").then(m => m.ARViewer3D), {
+  ssr: false,
+  loading: () => <div className="h-[360px] bg-black rounded-xl flex items-center justify-center text-white/20 text-[11px]">Loading 3D Engine...</div>
+})
 const REAL_PANTONE_DATABASE = [
   { name: "Classic Blue (Pantone 19-4052)", hex: "#0f4c81" },
   { name: "Marsala (Pantone 18-1438)", hex: "#955251" },
