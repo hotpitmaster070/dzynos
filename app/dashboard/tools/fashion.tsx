@@ -137,16 +137,7 @@ export default function FashionTool(props: any) {
           </div>
         </div>
 
-        <div className="h-[340px] bg-black rounded-xl flex items-center justify-center relative overflow-hidden border border-white/5">
-          {img? (
-            <img src={img} alt="Preview" className="h-full object-contain" style={{ filter: `drop-shadow(0 0 20px ${currentHex}40)` }} />
-          ) : (
-            <div className="text-white/20 text-[11px]">Drop image URL or use AI</div>
-          )}
-          <div className="absolute bottom-2 left-1/2 -translate-x-1/2 bg-black/80 px-3 py-1 rounded-full text-[10px] text-white/60 font-mono text-center w-[90%] truncate">
-            {color}
-          </div>
-        </div>
+        <ARViewer3D hex={currentHex} img={img} fabric={selectedFabric} />
 
         {/* 2. ИИ-ГЕНЕРАТОР ПРИНТОВ ТКАНИ — ИСПРАВЛЕН */}
         <div className="mt-3 bg-black/30 border border-white/5 p-2 rounded-xl space-y-2">
