@@ -6,19 +6,23 @@ import * as THREE from "three"
 import React from "react"
 
 function createMannequinGeometry(type: string) {
-  const profiles: any = {
-    female: [[0,0.85,0.12],[0,0.75,0.22],[0,0.6,0.32],[0,0.45,0.28],[0,0.2,0.35],[0,0,0.36],[0,-0.3,0.34],[0,-0.6,0.18],[0,-0.8,0.12]],
-    male: [[0,0.85,0.14],[0,0.75,0.26],[0,0.6,0.38],[0,0.45,0.33],[0,0.2,0.37],[0,0,0.38],[0,-0.3,0.36],[0,-0.6,0.2],[0,-0.8,0.14]],
-    child: [[0,0.6,0.1],[0,0.52,0.18],[0,0.4,0.24],[0,0.28,0.22],[0,0.12,0.26],[0,0,0.27],[0,-0.2,0.25],[0,-0.4,0.15],[0,-0.55,0.1]],
+  const raw: any = {
+    female: [[0.12,0.85],[0.22,0.75],[0.32,0.62],[0.28,0.48],[0.35,0.20],[0.36,0.0],[0.34,-0.30],[0.18,-0.60],[0.12,-0.85]],
+    male: [[0.14,0.85],[0.26,0.75],[0.38,0.62],[0.33,0.45],[0.37,0.18],[0.38,0.0],[0.36,-0.30],[0.20,-0.60],[0.14,-0.85]],
+    child: [[0.10,0.60],[0.18,0.52],[0.24,0.40],[0.22,0.28],[0.26,0.12],[0.27,0.0],[0.25,-0.20],[0.15,-0.40],[0.10,-0.55]],
   }
-  const points = profiles[type]
+  // СГЛАЖИВАНИЕ — вот чего не хватало на скрине
+  const curve = new THREE.CatmullRomCurve2D(
+    raw[type].map((p:any)=> new THREE.Vector2(p[0], p[1]))
+  )
+  const points = curve.getPoints(60)
   const radial = 64
   const geo = new THREE.BufferGeometry()
   const pos:number[]=[], uv:number[]=[], idx:number[]=[]
   for(let i=0;i<points.length;i++){
     for(let j=0;j<=radial;j++){
       const theta=(j/radial)*Math.PI*2
-      pos.push(points[i][2]*Math.cos(theta), points[i][1], points[i][2]*Math.sin(theta))
+      pos.push(points[i].x*Math.cos(theta), points[i].y, points[i].x*Math.sin(theta))
       uv.push(j/radial, i/(points.length-1))
     }
   }
@@ -37,16 +41,11 @@ function createMannequinGeometry(type: string) {
 
 function SmartMannequin({ hex, fabric, type }: any) {
   const geometry = useMemo(()=>createMannequinGeometry(type), [type])
-  const isSilk = (fabric||"").toLowerCase().includes("silk") || (fabric||"").toLowerCase().includes("satin")
+  const f = (fabric||"").toLowerCase()
+  const isSilk = f.includes("silk") || f.includes("satin") || f.includes("шелк")
   return (
     <mesh geometry={geometry} position={[0, -0.1, 0]}>
-      <meshPhysicalMaterial
-        color={hex || "#111"}
-        roughness={isSilk?0.25:0.75}
-        metalness={0}
-        clearcoat={isSilk?1:0}
-        clearcoatRoughness={0.2}
-      />
+      <meshPhysicalMaterial color={hex || "#111"} roughness={isSilk?0.25:0.75} clearcoat={isSilk?1:0} clearcoatRoughness={0.2} />
     </mesh>
   )
 }
