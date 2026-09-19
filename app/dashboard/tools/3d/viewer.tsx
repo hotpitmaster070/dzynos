@@ -14,34 +14,27 @@ const CONFIG = {
 // УМНЫЙ МАНЕКЕН — 1 файл на все ♀/♂/Child
 function SmartMannequin({ hex, fabric, type = "female" }: { hex: string, fabric?: any, type?: "female"|"male"|"child" }) {
   const c = CONFIG[type]
-
   const bodyGeo = useMemo(() => {
     const points = [
-      new THREE.Vector2(0, 0),
+      new THREE.Vector2(0.01, 0),
       new THREE.Vector2(c.waist * 0.5, 0.2),
       new THREE.Vector2(c.hip * 0.6, 0.5),
       new THREE.Vector2(c.waist * 0.5, 0.9),
       new THREE.Vector2(c.shoulder * 0.5, 1.3),
     ]
-    return new THREE.LatheGeometry(points, 32)
+    const g = new THREE.LatheGeometry(points, 24)
+    g.computeVertexNormals()
+    return g
   }, [c])
-
-  const material = useMemo(() => {
-    return new THREE.MeshStandardMaterial({
-      color: new THREE.Color(hex || "#0a0a0a"),
-      roughness: fabric?.roughness?? fabric?.physics?.roughness?? 0.35,
-      metalness: 0.15,
-      side: THREE.DoubleSide
-    })
-  }, [hex, fabric])
-
+  const material = useMemo(() => new THREE.MeshStandardMaterial({
+    color: new THREE.Color(hex || "#111111"),
+    roughness: 0.4,
+    metalness: 0.1,
+    side: THREE.FrontSide
+  }), [hex, fabric])
   return (
     <group position={[0, -0.8, 0]}>
-      <mesh geometry={bodyGeo} material={material} castShadow />
-      <mesh position={[0, 1.6, 0]}>
-        <sphereGeometry args={[0.12, 32, 32]} />
-        <meshStandardMaterial color="#0a0a0a" />
-      </mesh>
+      <mesh geometry={bodyGeo} material={material} />
     </group>
   )
 }
