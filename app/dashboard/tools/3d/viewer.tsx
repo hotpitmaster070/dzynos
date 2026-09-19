@@ -40,9 +40,9 @@ function createMannequinGeometry(type: string) {
   ],
   }
   const curve = new THREE.CatmullRomCurve3(
-    raw[type].map((p:any)=> new THREE.Vector3(p[0], p[1], 0)),
-    false, "catmullrom", 0.5
-  )
+  raw[type].map((p:any)=> new THREE.Vector3(p[0], p[1], 0)),
+  false, "centripetal", 0
+)
   const points3 = curve.getPoints(60)
   const points = points3.map(v=> new THREE.Vector2(v.x, v.y))
   const radial = 64
