@@ -1,17 +1,28 @@
 "use client"
 import { Canvas } from "@react-three/fiber"
-import { OrbitControls, useGLTF, Environment } from "@react-three/drei"
+import { OrbitControls, Environment } from "@react-three/drei"
 import { useMemo, Suspense } from "react"
 import * as THREE from "three"
 
+// Заглушка пока нет GLB — не капсула, а фигура
+function FallbackModel({ hex }: { hex: string }) {
+  return (
+    <mesh>
+      <capsuleGeometry args={[0.35, 1.2, 4, 16]} />
+      <meshStandardMaterial color={hex || "#0a8a74"} roughness={0.6} />
+    </mesh>
+  )
+}
+
+// Твоя модель, но мы ее спрячем в ErrorBoundary
+import { useGLTF } from "@react-three/drei"
 function MannequinModel({ hex, fabricProps }: { hex: string, fabricProps?: any }) {
   const { scene } = useGLTF("/models/mannequin.glb") as any
-
   const material = useMemo(() => {
     return new THREE.MeshStandardMaterial({
       color: new THREE.Color(hex || "#0a8a74"),
       roughness: fabricProps?.roughness?? fabricProps?.physics?.roughness?? 0.6,
-      metalness: fabricProps?.metalness?? 0.1,
+      metalness: 0.1,
       side: THREE.DoubleSide
     })
   }, [hex, fabricProps])
@@ -28,13 +39,12 @@ function MannequinModel({ hex, fabricProps }: { hex: string, fabricProps?: any }
   return <primitive object={scene} scale={1.6} position={[0, -0.8, 0]} />
 }
 
-function FallbackModel({ hex }: { hex: string }) {
-  return (
-    <mesh>
-      <capsuleGeometry args={[0.35, 1.2, 4, 16]} />
-      <meshStandardMaterial color={hex || "#0a8a74"} roughness={0.6} />
-    </mesh>
-  )
+// ЛОВУШКА ДЛЯ 404
+import React from "react"
+class ErrorBoundary extends React.Component<any, any> {
+  state = { hasError: false }
+  static getDerivedStateFromError() { return { hasError: true } }
+  render() { return this.state.hasError? this.props.fallback : this.props.children }
 }
 
 export function ARViewer3D({ hex, img, fabric }: { hex: string, img: string, fabric?: any }) {
@@ -44,9 +54,11 @@ export function ARViewer3D({ hex, img, fabric }: { hex: string, img: string, fab
         <ambientLight intensity={0.8} />
         <directionalLight position={[2, 3, 2]} intensity={1.2} />
 
-        <Suspense fallback={<FallbackModel hex={hex} />}>
-          <MannequinModel hex={hex} fabricProps={fabric} />
-        </Suspense>
+        <ErrorBoundary fallback={<FallbackModel hex={hex} />}>
+          <Suspense fallback={<FallbackModel hex={hex} />}>
+            <MannequinModel hex={hex} fabricProps={fabric} />
+          </Suspense>
+        </ErrorBoundary>
 
         <OrbitControls enablePan={false} minDistance={1} maxDistance={3} />
         <Environment preset="studio" />
@@ -65,4 +77,4 @@ export function ARViewer3D({ hex, img, fabric }: { hex: string, img: string, fab
       <div className="absolute bottom-2 left-2 text-[8px] font-mono text-white/20">FPS: 60 • POLY: 1.9M • VIEW: PERSPECTIVE</div>
     </div>
   )
-          }
+}
