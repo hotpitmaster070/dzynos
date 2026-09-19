@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { ... } from '../../../lib/patternCalculator'
+import { calculatePatterns } from '../../../lib/patternCalculator'
 
 export async function POST(req: Request){
   try{
@@ -10,7 +10,6 @@ export async function POST(req: Request){
       return NextResponse.json({ error: "no fabric" }, { status: 400 })
     }
 
-    // Считаем лекала по твоим ползункам + физике ткани
     const pattern = calculatePatterns(
       { length, chestWidth: shoulders || chestWidth, sleeveLength, shoulders, backOpen }, 
       fabric?.stiffness || fabric?.physics?.stiffness || 0.6
@@ -32,4 +31,4 @@ export async function POST(req: Request){
   }catch(e:any){
     return NextResponse.json({ error: e?.message || "techpack error" }, { status: 500 })
   }
-       }
+}
