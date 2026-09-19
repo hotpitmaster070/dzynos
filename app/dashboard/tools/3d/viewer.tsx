@@ -5,29 +5,22 @@ import { useMemo } from "react"
 import * as THREE from "three"
 
 function MannequinModel({ hex, fabricProps }: { hex: string, fabricProps?: any }) {
-  let scene: any = null
-  try { const gltf = useGLTF("/models/mannequin.glb"); scene = gltf.scene } catch(e) { scene = null }
+  const { scene } = useGLTF("/models/mannequin.glb", true) as any
 
   const material = useMemo(() => {
     return new THREE.MeshStandardMaterial({
-      color: new THREE.Color(hex),
-      roughness: fabricProps?.roughness?? 0.6,
-      metalness: fabricProps?.metalness?? 0.1,
+      color: new THREE.Color(hex || "#0a8a74"),
+      roughness: fabricProps?.roughness ?? fabricProps?.physics?.roughness ?? 0.6,
+      metalness: 0.1,
       side: THREE.DoubleSide
     })
   }, [hex, fabricProps])
 
-  if (scene) {
-    scene.traverse((child: any) => { if (child.isMesh) child.material = material })
-    return <primitive object={scene} scale={1.6} position={[0, -0.8, 0]} />
-  }
-  // Фолбэк если нет GLB — просто капсула с тканью
-  return (
-    <mesh>
-      <capsuleGeometry args={[0.35, 1.2, 4, 16]} />
-      <primitive object={material} attach="material" />
-    </mesh>
-  )
+  useMemo(() => {
+    scene?.traverse((child: any) => { if (child.isMesh) child.material = material })
+  }, [scene, material])
+
+  return <primitive object={scene} scale={1.6} position={[0, -0.8, 0]} />
 }
 
 export function ARViewer3D({ hex, img, fabric }: { hex: string, img: string, fabric?: any }) {
