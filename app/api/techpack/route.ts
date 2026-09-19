@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { calculatePatterns } from "@/lib/patternCalculator"
+import { ... } from '../../../lib/patternCalculator'
 
 export async function POST(req: Request){
   try{
