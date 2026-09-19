@@ -137,7 +137,7 @@ export default function FashionTool(props: any) {
           </div>
         </div>
 
-        <ARViewer3D hex={currentHex} img={img} fabric={selectedFabric} />
+        <ARViewer3D hex={currentHex} img={img} fabric={null} />
 
         {/* 2. ИИ-ГЕНЕРАТОР ПРИНТОВ ТКАНИ — ИСПРАВЛЕН */}
         <div className="mt-3 bg-black/30 border border-white/5 p-2 rounded-xl space-y-2">
