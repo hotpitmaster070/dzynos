@@ -143,7 +143,7 @@ export default function FashionTool(props: any) {
           <button type="button" onClick={()=>setMannequinType("child")} className={`px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${mannequinType==="child"?"bg-white text-black border-white":"bg-white/10 text-white/60 border-white/10"}`}>Child</button>
         </div>
 
-        <ARViewer3D hex={currentHex} img={img} fabric={null} type={mannequinType} />
+        <ARViewer3D key={mannequinType} hex={currentHex} img={img} fabric={null} type={mannequinType} /> 
 
         <div className="mt-3 bg-black/30 border border-white/5 p-2 rounded-xl space-y-2">
           <div className="text-[9px] text-[#2dd4bf] uppercase tracking-wider font-bold">🤖 AI Fabric Texture Generator {aiGenerating? '(generating...)' : ''}</div>
