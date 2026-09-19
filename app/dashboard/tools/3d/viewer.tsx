@@ -11,11 +11,12 @@ function createMannequinGeometry(type: string) {
     male: [[0.14,0.85],[0.26,0.75],[0.38,0.62],[0.33,0.45],[0.37,0.18],[0.38,0.0],[0.36,-0.30],[0.20,-0.60],[0.14,-0.85]],
     child: [[0.10,0.60],[0.18,0.52],[0.24,0.40],[0.22,0.28],[0.26,0.12],[0.27,0.0],[0.25,-0.20],[0.15,-0.40],[0.10,-0.55]],
   }
-  // СГЛАЖИВАНИЕ — вот чего не хватало на скрине
-  const curve = new THREE.CatmullRomCurve2D(
-    raw[type].map((p:any)=> new THREE.Vector2(p[0], p[1]))
+  const curve = new THREE.CatmullRomCurve3(
+    raw[type].map((p:any)=> new THREE.Vector3(p[0], p[1], 0)),
+    false, "catmullrom", 0.5
   )
-  const points = curve.getPoints(60)
+  const points3 = curve.getPoints(60)
+  const points = points3.map(v=> new THREE.Vector2(v.x, v.y))
   const radial = 64
   const geo = new THREE.BufferGeometry()
   const pos:number[]=[], uv:number[]=[], idx:number[]=[]
